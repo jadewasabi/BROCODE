@@ -1,13 +1,6 @@
 import { Redis } from '@upstash/redis';
 import jwt from 'jsonwebtoken';
 
-// DEBUG: add request-id style logs (visible in Vercel function logs)
-function redact(s) {
-  if (!s) return '';
-  return String(s).slice(0, 4) + '...';
-}
-
-
 function authUser(req) {
   const header = req.headers?.authorization || '';
   const parts = String(header).split(' ');
@@ -15,7 +8,7 @@ function authUser(req) {
   try {
     const payload = jwt.verify(parts[1], process.env.JWT_SECRET);
     return payload?.sub || null;
-  } catch (_) {
+  } catch {
     return null;
   }
 }
@@ -31,16 +24,28 @@ export default async function handler(req, res) {
   });
 
   if (req.method === 'GET') {
-    // Stored as a list: posts (newest first)
-    // Each post stored under post:{id}
-    const ids = await redis.lrange('posts', 0, 49); // newest up to 50
+    // NOTE: Some Redis providers / configurations may not persist the list key as expected.
+    // To guarantee correctness, we fetch the recent post ids from a Redis set.
+    // This requires POST to also maintain that set.
 
-    console.log('posts GET list length:', Array.isArray(ids) ? ids.length : 'not-array');
-    if (Array.isArray(ids)) console.log('posts GET ids sample:', ids.slice(0, 5));
+    // primary: ordered list
+    const ids = await redis.lrange('posts', 0, 49);
+
+    // fallback: set-based last-ids
+    let effectiveIds = Array.isArray(ids) ? ids : [];
+
+    if (!effectiveIds.length) {
+      const setIds = await redis.smembers('posts:id');
+      // Keep deterministic ordering by sorting numerically descending.
+      effectiveIds = (Array.isArray(setIds) ? setIds : [])
+        .slice()
+        .map(String)
+        .sort((a, b) => Number(b) - Number(a))
+        .slice(0, 50);
+    }
 
     const posts = [];
-
-    for (const id of ids) {
+    for (const id of effectiveIds) {
       const raw = await redis.get(`post:${id}`);
       if (!raw) continue;
       try {
@@ -83,8 +88,12 @@ export default async function handler(req, res) {
     };
 
     await redis.set(`post:${post.id}`, JSON.stringify(post));
+
+    // Maintain list + set for robust reads.
     await redis.lpush('posts', post.id);
     await redis.ltrim('posts', 0, 99);
+
+    await redis.sadd('posts:id', post.id);
 
     return res.status(201).json({ post });
   }
