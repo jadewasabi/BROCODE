@@ -1,0 +1,56 @@
+import { Redis } from '@upstash/redis';
+import jwt from 'jsonwebtoken';
+
+function authUser(req) {
+  const header = req.headers?.authorization || '';
+  const parts = String(header).split(' ');
+  if (parts.length !== 2 || parts[0].toLowerCase() !== 'bearer') return null;
+  try {
+    const payload = jwt.verify(parts[1], process.env.JWT_SECRET);
+    return payload?.sub || null;
+  } catch (_) {
+    return null;
+  }
+}
+
+export default async function handler(req, res) {
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+
+  const user = authUser(req);
+  if (!user) return res.status(401).json({ error: 'unauthorized' });
+
+  const { postId, reaction } = req.body || {};
+  const id = String(postId || req.body?.postId || '').trim();
+  const r = String(reaction || '').trim();
+
+
+  if (!id) return res.status(400).json({ error: 'postId required' });
+  if (r !== 'like' && r !== 'love') return res.status(400).json({ error: 'reaction must be like or love' });
+
+  const redis = new Redis({
+    url: process.env.UPSTASH_REDIS_REST_URL,
+    token: process.env.UPSTASH_REDIS_REST_TOKEN,
+  });
+
+  const raw = await redis.get(`post:${id}`);
+  if (!raw) return res.status(404).json({ error: 'post not found' });
+  const post = JSON.parse(raw);
+
+  // Per-user toggles using sets
+  const setKey = `post:${id}:react:${r}`;
+  const already = await redis.sismember(setKey, user);
+  if (already) {
+    // remove reaction
+    await redis.srem(setKey, user);
+    if (r === 'like') post.reactions.likes = Math.max(0, (post.reactions.likes || 0) - 1);
+    if (r === 'love') post.reactions.loves = Math.max(0, (post.reactions.loves || 0) - 1);
+  } else {
+    await redis.sadd(setKey, user);
+    if (r === 'like') post.reactions.likes = (post.reactions.likes || 0) + 1;
+    if (r === 'love') post.reactions.loves = (post.reactions.loves || 0) + 1;
+  }
+
+  await redis.set(`post:${id}`, JSON.stringify(post));
+  return res.status(200).json({ ok: true, post });
+}
+

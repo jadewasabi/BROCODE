@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login Form</title>
+  <link rel="stylesheet" href="login.css">
+</head>
+<body>
+
+ <header class="header">
+      <nav class="navbar">
+        <h2 class="logo"><a href="#">AID4PROGRAMMERS</a></h2>
+        <input type="checkbox" id="menu-toggle" />
+        <label for="menu-toggle" id="hamburger-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24">
+            <path d="M3 12h18M3 6h18M3 18h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </label>
+        <ul class="links">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="#">About Us</a></li>
+          <li><a href="#">Services</a></li>
+          <li><a href="#">Portfolio</a></li>
+          <li><a href="#">Contact Us</a></li>
+        </ul>
+      </nav>
+    </header>
+
+  <div class="wrapper">
+    <form id="login" novalidate>
+      <h2>Login</h2>
+        <div class="input-field">
+        <input type="text" id="username" name="username" required>
+        <label for="username">Enter your username</label>
+      </div>
+      <div class="input-field">
+        <input type="password" id="password" name="password" required>
+        <label for="password">Enter your password</label>
+      </div>
+      <button type="submit">Login</button>
+      <div id="loginMsg" style="margin-top:12px;display:none;color:#fff;font-weight:600;"></div>
+      <div id="loginErr" style="margin-top:12px;display:none;color:#ffb3b3;font-weight:600;"></div>
+      <div class="register">
+        <p>Don't have an account? <a href="register.html">Register</a></p>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    const tokenKey = 'aid4_token';
+
+    document.getElementById('login').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+
+      const res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+      const errEl = document.getElementById('loginErr');
+      const msgEl = document.getElementById('loginMsg');
+
+      if (!res.ok) {
+        errEl.style.display = 'block';
+        msgEl.style.display = 'none';
+        errEl.textContent = data?.error || 'Login failed.';
+        return;
+      }
+
+      localStorage.setItem(tokenKey, data.token || '');
+      msgEl.style.display = 'block';
+      msgEl.textContent = 'Login successful! Redirecting...';
+
+      setTimeout(() => {
+        window.location.href = 'timeline.html';
+      }, 500);
+    });
+  </script>
+</body>
+</html>
+
+
+

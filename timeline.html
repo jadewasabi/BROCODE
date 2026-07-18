@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Timeline</title>
+    <link rel="stylesheet" href="timeline.css" />
+  </head>
+  <body>
+    <header class="header">
+      <nav class="navbar">
+        <h2 class="logo"><a href="#">AID4PROGRAMMERS</a></h2>
+        <input type="checkbox" id="menu-toggle" />
+        <label for="menu-toggle" id="hamburger-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24">
+            <path
+              d="M3 12h18M3 6h18M3 18h18"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+            />
+          </svg>
+        </label>
+        <ul class="links">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="#">About Us</a></li>
+          <li><a href="#">Services</a></li>
+          <li><a href="#">Portfolio</a></li>
+          <li><a href="#">Contact Us</a></li>
+        </ul>
+      </nav>
+    </header>
+
+    <main class="main">
+      <div class="topbar">
+        <div class="search">
+          <input id="search" type="text" placeholder="Search by username or post..." />
+        </div>
+        <button class="logout" id="logoutBtn" type="button">Logout</button>
+      </div>
+
+      <div class="grid">
+        <section class="composer card">
+          <h2>Create a post</h2>
+          <form id="postForm">
+            <div class="field">
+              <label for="postText">Text (optional)</label>
+              <textarea id="postText" placeholder="What's on your mind?"></textarea>
+            </div>
+            <div class="field">
+              <label for="postImage">Image URL (optional)</label>
+              <input id="postImage" type="text" placeholder="https://... (optional)" />
+              <div class="small">For simplicity, image upload is done via URL. (No server-side upload.)</div>
+            </div>
+            <button class="primary" type="submit">Post</button>
+          </form>
+          <div class="small" id="postError" style="margin-top:10px;display:none;"></div>
+        </section>
+
+        <section class="timeline card">
+          <h2>Timeline</h2>
+          <div class="posts" id="posts"></div>
+        </section>
+      </div>
+    </main>
+
+    <script src="timeline.js"></script>
+  </body>
+</html>
+
