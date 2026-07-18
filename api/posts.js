@@ -69,7 +69,10 @@ export default async function handler(req, res) {
         continue;
       }
       try {
-        posts.push(JSON.parse(raw));
+        // Upstash Redis returns either string or object depending on the client config.
+        // If it's already an object, don't JSON.parse it.
+        if (typeof raw === 'string') posts.push(JSON.parse(raw));
+        else posts.push(raw);
       } catch (e) {
         parseFailures++;
         if (!firstParseFail) firstParseFail = { id, rawSnippet: String(raw).slice(0, 120) };
@@ -116,7 +119,7 @@ export default async function handler(req, res) {
 
     await redis.set(`post:${postId}`, JSON.stringify(post));
 
-    // Set-based index ONLY (most reliable across Redis providers)
+  
     await redis.sadd('posts:id', postId);
 
     return res.status(201).json({ post, env: debugEnv });
