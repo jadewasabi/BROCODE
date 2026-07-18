@@ -1,4 +1,15 @@
-API_BASE = '';
+// IMPORTANT: If you are hosting timeline.html on GitHub Pages / file://,
+// set API_BASE to your Vercel deployment URL (origin only).
+// Example: const API_BASE = 'https://aid4programmers.vercel.app';
+// TODO: set this to your Vercel app origin (leave trailing slash off).
+// If you deploy to Vercel, set it to: https://<YOUR_VERCE_L_APP>.vercel.app
+const API_BASE = 'https://aid-4-prog.vercel.app/';
+
+
+
+// If you open timeline.html from local filesystem, set API_BASE to your Vercel domain.
+// Example: const API_BASE = 'https://your-project.vercel.app';
+
 
 const tokenKey = 'aid4_token';
 
@@ -148,12 +159,23 @@ const imageUrl = (document.getElementById('postImage').value || '').trim();
     return;
   }
 
-  const payload = {
+const payload = {
     text: text || null,
     imageUrl: imageUrl || null,
   };
 
-  await api('/api/posts', { method: 'POST', body: payload });
+  try {
+    const created = await api('/api/posts', { method: 'POST', body: payload });
+    // helpful for debugging if it isn't rendering
+    console.log('post created:', created);
+  } catch (err) {
+    const msg = err?.message || String(err);
+    const errEl = document.getElementById('postError');
+    errEl.style.display = 'block';
+    errEl.textContent = msg;
+    return;
+  }
+
 
   document.getElementById('postText').value = '';
   document.getElementById('postImage').value = '';
