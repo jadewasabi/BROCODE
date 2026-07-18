@@ -1,4 +1,5 @@
-const API_BASE = '';
+API_BASE = '';
+
 const tokenKey = 'aid4_token';
 
 function getToken() {
@@ -137,9 +138,10 @@ async function handleCreatePost(e) {
   if (!t) return;
 
   const text = document.getElementById('postText').value.trim();
-  const imageUrl = document.getElementById('postImage').value.trim();
+const imageUrl = (document.getElementById('postImage').value || '').trim();
 
   if (!text && !imageUrl) {
+
     const err = document.getElementById('postError');
     err.style.display = 'block';
     err.textContent = 'Write something or provide an image URL.';
