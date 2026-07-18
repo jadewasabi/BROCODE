@@ -1,6 +1,13 @@
 import { Redis } from '@upstash/redis';
 import jwt from 'jsonwebtoken';
 
+// DEBUG: add request-id style logs (visible in Vercel function logs)
+function redact(s) {
+  if (!s) return '';
+  return String(s).slice(0, 4) + '...';
+}
+
+
 function authUser(req) {
   const header = req.headers?.authorization || '';
   const parts = String(header).split(' ');
@@ -27,6 +34,10 @@ export default async function handler(req, res) {
     // Stored as a list: posts (newest first)
     // Each post stored under post:{id}
     const ids = await redis.lrange('posts', 0, 49); // newest up to 50
+
+    console.log('posts GET list length:', Array.isArray(ids) ? ids.length : 'not-array');
+    if (Array.isArray(ids)) console.log('posts GET ids sample:', ids.slice(0, 5));
+
     const posts = [];
 
     for (const id of ids) {
@@ -39,7 +50,14 @@ export default async function handler(req, res) {
       }
     }
 
-    return res.status(200).json({ posts });
+    return res.status(200).json({
+      posts,
+      env: {
+        hasRedisUrl: Boolean(process.env.UPSTASH_REDIS_REST_URL),
+        hasRedisToken: Boolean(process.env.UPSTASH_REDIS_REST_TOKEN),
+        jwtSecretSet: Boolean(process.env.JWT_SECRET),
+      },
+    });
   }
 
   if (req.method === 'POST') {
