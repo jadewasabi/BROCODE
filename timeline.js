@@ -131,6 +131,8 @@ async function loadPosts() {
   // Debug to verify timeline GET response and that renderPosts is fed data
   console.log('loadPosts GET /api/posts =>', data);
   console.log('allPosts length:', allPosts.length);
+  if (data && data.env) console.log('GET /api/posts env:', data.env);
+
 
   applySearchAndRender();
 }
