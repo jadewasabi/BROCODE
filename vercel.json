@@ -1,6 +1,7 @@
 {
   "version": 2,
-  "buildCommand": "",
-  "framework": "none"
+  "buildCommand": "npm install",
+  "framework": "nextjs"
 }
+
 
