@@ -56,13 +56,23 @@ export default async function handler(req, res) {
     effectiveIds = effectiveIds.slice(0, 50);
 
     const posts = [];
+    let missingPostObjects = 0;
+    let parseFailures = 0;
+    let firstMissingId = null;
+    let firstParseFail = null;
+
     for (const id of effectiveIds) {
       const raw = await redis.get(`post:${id}`);
-      if (!raw) continue;
+      if (!raw) {
+        missingPostObjects++;
+        if (!firstMissingId) firstMissingId = id;
+        continue;
+      }
       try {
         posts.push(JSON.parse(raw));
-      } catch {
-        // ignore
+      } catch (e) {
+        parseFailures++;
+        if (!firstParseFail) firstParseFail = { id, rawSnippet: String(raw).slice(0, 120) };
       }
     }
 
@@ -72,6 +82,10 @@ export default async function handler(req, res) {
       debugIndex: {
         idsCount: effectiveIds.length,
         sampleIds: effectiveIds.slice(0, 5),
+        missingPostObjects,
+        parseFailures,
+        firstMissingId,
+        firstParseFail,
       },
     });
   }
