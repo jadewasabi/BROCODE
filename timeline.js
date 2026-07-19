@@ -3,12 +3,8 @@
 // Example: const API_BASE = 'https://aid4programmers.vercel.app';
 // TODO: set this to your Vercel app origin (leave trailing slash off).
 // If you deploy to Vercel, set it to: https://<YOUR_VERCE_L_APP>.vercel.app
-const API_BASE = 'https://aid-4-prog.vercel.app';
-
-
-
-// If you open timeline.html from local filesystem, set API_BASE to your Vercel domain.
-// Example: const API_BASE = 'https://your-project.vercel.app';
+// Use same origin so it works regardless of your Vercel URL
+const API_BASE = '';
 
 
 const tokenKey = 'aid4_token';
@@ -16,7 +12,6 @@ const tokenKey = 'aid4_token';
 function getToken() {
   return localStorage.getItem(tokenKey) || '';
 }
-
 
 function requireAuth() {
   const t = getToken();
@@ -31,11 +26,8 @@ async function api(path, { method = 'GET', body } = {}) {
   const headers = {};
   const t = getToken();
   if (t) headers['Authorization'] = `Bearer ${t}`;
-  if (body instanceof FormData) {
-    // not used currently
-  } else if (body) {
-    headers['Content-Type'] = 'application/json';
-  }
+  if (body) headers['Content-Type'] = 'application/json';
+
   const res = await fetch(API_BASE + path, {
     method,
     headers,
@@ -50,6 +42,7 @@ async function api(path, { method = 'GET', body } = {}) {
     } catch (_) {}
     throw new Error(msg);
   }
+
   return res.json().catch(() => ({}));
 }
 
@@ -61,13 +54,6 @@ function escapeHtml(s) {
     .replaceAll('"', '"')
     .replaceAll("'", '&#039;');
 }
-
-
-
-
-
-
-
 
 function fmtTime(ts) {
   if (!ts) return '';
@@ -83,6 +69,7 @@ let allPosts = [];
 function renderPosts(filtered) {
   const postsEl = document.getElementById('posts');
   postsEl.innerHTML = '';
+
   if (!filtered.length) {
     postsEl.innerHTML = '<div class="small">No posts yet.</div>';
     return;
@@ -96,7 +83,9 @@ function renderPosts(filtered) {
       .slice(-5)
       .map(
         (c) =>
-          `<div class="comment"><strong>${escapeHtml(c.username)}</strong>: ${escapeHtml(c.text)}</div>`
+          `<div class="comment"><strong>${escapeHtml(c.username)}</strong>: ${escapeHtml(
+            c.text
+          )}</div>`
       )
       .join('');
 
@@ -109,17 +98,29 @@ function renderPosts(filtered) {
         <div class="post-meta">#${escapeHtml(String(p.id))}</div>
       </div>
 
-      ${p.imageUrl ? `<div class="post-img"><img src="${escapeHtml(p.imageUrl)}" alt="post image" /></div>` : ''}
+      ${p.imageUrl ? `<div class="post-img"><img src="${escapeHtml(
+        p.imageUrl
+      )}" alt="post image" /></div>` : ''}
 
       ${p.text ? `<div class="post-content">${escapeHtml(p.text)}</div>` : ''}
 
       <div class="actions">
-        <button class="btn react-btn" data-react="like" data-postid="${p.id}"><span class="icon">👍</span> Like (<span class="likeCount">${p.reactions?.likes ?? 0}</span>)</button>
-        <button class="btn react-btn" data-react="love" data-postid="${p.id}"><span class="icon">❤️</span> Love (<span class="loveCount">${p.reactions?.loves ?? 0}</span>)</button>
+        <button class="btn react-btn" data-react="like" data-postid="${
+          p.id
+        }">👍 Like (<span class="likeCount">${
+      p.reactions?.likes ?? 0
+    }</span>)</button>
+        <button class="btn react-btn" data-react="love" data-postid="${
+          p.id
+        }">❤️ Love (<span class="loveCount">${
+      p.reactions?.loves ?? 0
+    }</span>)</button>
       </div>
 
       <div class="comment-box">
-        <div class="comment-list">${commentHtml || '<div class="small">No comments yet.</div>'}</div>
+        <div class="comment-list">${
+          commentHtml || '<div class="small">No comments yet.</div>'
+        }</div>
         <form class="comment-form" data-commentform="${p.id}">
           <input type="text" required maxlength="300" placeholder="Write a comment..." />
           <button class="btn" type="submit">Comment</button>
@@ -134,17 +135,8 @@ function renderPosts(filtered) {
 async function loadPosts() {
   const data = await api('/api/posts');
   allPosts = Array.isArray(data.posts) ? data.posts : [];
-
-  // Debug to verify timeline GET response and that renderPosts is fed data
-  console.log('loadPosts GET /api/posts =>', data);
-  console.log('allPosts length:', allPosts.length);
-  console.log('posts array from response:', data?.posts);
-  if (data && data.env) console.log('GET /api/posts env:', data.env);
-
-
   applySearchAndRender();
 }
-
 
 function applySearchAndRender() {
   const q = (document.getElementById('search').value || '').trim().toLowerCase();
@@ -152,10 +144,15 @@ function applySearchAndRender() {
 
   const filtered = allPosts.filter((p) => {
     return (
-      String(p.username || '').toLowerCase().includes(q) ||
-      String(p.text || '').toLowerCase().includes(q)
+      String(p.username || '')
+        .toLowerCase()
+        .includes(q) ||
+      String(p.text || '')
+        .toLowerCase()
+        .includes(q)
     );
   });
+
   renderPosts(filtered);
 }
 
@@ -164,51 +161,45 @@ async function handleCreatePost(e) {
   const t = requireAuth();
   if (!t) return;
 
-  const text = document.getElementById('postText').value.trim();
-// NOTE: <input type="file"> requires multipart/form-data; right now backend expects imageUrl.
-// This UI still lets you choose a file; we convert it to a data URL (demo). For production, upload should be done separately.
-let imageUrl = '';
-const fileEl = document.getElementById('postImage');
-const file = fileEl && fileEl.files && fileEl.files[0];
-if (file) {
-  imageUrl = await new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result || ''));
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-} else {
-  imageUrl = '';
-}
+  const textEl = document.getElementById('postText');
+  const fileInput = document.getElementById('postImage');
+
+  const text = (textEl.value || '').trim();
+  // UI accepts a URL OR a chosen file.
+  // Backend currently supports imageUrl string.
+  let imageUrl = '';
+  if (fileInput && fileInput.type === 'text') {
+    imageUrl = (fileInput.value || '').trim();
+  }
+
+  // If file input is actually a <input type="file">, we convert to data URL.
+  const maybeFiles = fileInput?.files;
+  if (maybeFiles && maybeFiles[0]) {
+    imageUrl = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result || ''));
+      reader.onerror = reject;
+      reader.readAsDataURL(maybeFiles[0]);
+    });
+  }
 
   if (!text && !imageUrl) {
-
     const err = document.getElementById('postError');
     err.style.display = 'block';
     err.textContent = 'Write something or provide an image URL.';
     return;
   }
 
-const payload = {
+  const payload = {
     text: text || null,
     imageUrl: imageUrl || null,
   };
 
-  try {
-    const created = await api('/api/posts', { method: 'POST', body: payload });
-    // helpful for debugging if it isn't rendering
-    console.log('post created:', created);
-  } catch (err) {
-    const msg = err?.message || String(err);
-    const errEl = document.getElementById('postError');
-    errEl.style.display = 'block';
-    errEl.textContent = msg;
-    return;
-  }
+  await api('/api/posts', { method: 'POST', body: payload });
 
+  textEl.value = '';
+  if (fileInput) fileInput.value = '';
 
-  document.getElementById('postText').value = '';
-  document.getElementById('postImage').value = '';
   await loadPosts();
 }
 
@@ -220,11 +211,10 @@ async function handleCommentSubmit(e) {
   const text = (input.value || '').trim();
   if (!text) return;
 
-const created = await api(`/api/posts/${encodeURIComponent(postId)}/comment`, {
+  await api(`/api/posts/${encodeURIComponent(postId)}/comment`, {
     method: 'POST',
     body: { text },
   });
-  console.log('comment created:', created);
 
   input.value = '';
   await loadPosts();
@@ -237,11 +227,10 @@ async function handleReactClick(e) {
   const postId = btn.getAttribute('data-postid');
   const type = btn.getAttribute('data-react');
 
-const updated = await api(`/api/posts/${encodeURIComponent(postId)}/react`, {
+  await api(`/api/posts/${encodeURIComponent(postId)}/react`, {
     method: 'POST',
     body: { reaction: type },
   });
-  console.log('reaction updated:', updated);
 
   await loadPosts();
 }
