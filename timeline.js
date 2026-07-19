@@ -3,7 +3,7 @@
 // Example: const API_BASE = 'https://aid4programmers.vercel.app';
 // TODO: set this to your Vercel app origin (leave trailing slash off).
 // If you deploy to Vercel, set it to: https://<YOUR_VERCE_L_APP>.vercel.app
-const API_BASE = 'https://aid-4-prog.vercel.app/';
+const API_BASE = 'https://aid-4-prog.vercel.app';
 
 
 
@@ -107,8 +107,8 @@ function renderPosts(filtered) {
       ${p.text ? `<div class="post-content">${escapeHtml(p.text)}</div>` : ''}
 
       <div class="actions">
-        <button class="btn" data-react="like" data-postid="${p.id}">👍 Like (<span class="likeCount">${p.reactions?.likes ?? 0}</span>)</button>
-        <button class="btn" data-react="love" data-postid="${p.id}">❤️ Love (<span class="loveCount">${p.reactions?.loves ?? 0}</span>)</button>
+        <button class="btn react-btn" data-react="like" data-postid="${p.id}"><span class="icon">👍</span> Like (<span class="likeCount">${p.reactions?.likes ?? 0}</span>)</button>
+        <button class="btn react-btn" data-react="love" data-postid="${p.id}"><span class="icon">❤️</span> Love (<span class="loveCount">${p.reactions?.loves ?? 0}</span>)</button>
       </div>
 
       <div class="comment-box">
@@ -158,7 +158,21 @@ async function handleCreatePost(e) {
   if (!t) return;
 
   const text = document.getElementById('postText').value.trim();
-const imageUrl = (document.getElementById('postImage').value || '').trim();
+// NOTE: <input type="file"> requires multipart/form-data; right now backend expects imageUrl.
+// This UI still lets you choose a file; we convert it to a data URL (demo). For production, upload should be done separately.
+let imageUrl = '';
+const fileEl = document.getElementById('postImage');
+const file = fileEl && fileEl.files && fileEl.files[0];
+if (file) {
+  imageUrl = await new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ''));
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+} else {
+  imageUrl = '';
+}
 
   if (!text && !imageUrl) {
 
