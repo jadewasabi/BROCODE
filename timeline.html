@@ -45,7 +45,7 @@
             <div class="field">
               <label for="postImage">Image (optional)</label>
               <input id="postImage" type="file" accept="image/*" />
-              <div class="small">Choose an image (upload handled by Vercel + Upstash). Drag & drop also works.</div>
+              <div class="small">Uploads are stored as data URLs in Upstash (Redis). Works for multi-user viewing.</div>
             </div>
             <button class="primary" type="submit">Post</button>
           </form>
