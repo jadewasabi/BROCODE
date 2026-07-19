@@ -30,7 +30,10 @@
   <div class="wrapper">
     <form id="login" novalidate>
       <h2>Login</h2>
-        <div class="input-field">
+      <div id="loginMsg" style="margin-top:12px;display:none;color:#fff;font-weight:600;"></div>
+      <div id="loginErr" style="margin-top:12px;display:none;color:#ffb3b3;font-weight:600;"></div>
+
+      <div class="input-field">
         <input type="text" id="username" name="username" required>
         <label for="username">Enter your username</label>
       </div>
