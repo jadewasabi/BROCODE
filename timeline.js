@@ -4,7 +4,13 @@
 // TODO: set this to your Vercel app origin (leave trailing slash off).
 // If you deploy to Vercel, set it to: https://<YOUR_VERCE_L_APP>.vercel.app
 // Use same origin so it works regardless of your Vercel URL
-const API_BASE = 'https://jadexbun/';
+// If this page is served from the same origin as the Next.js API routes,
+// you can use a relative API base so it works locally and in production.
+// Otherwise set API_BASE to your Vercel origin (no trailing slash).
+const API_BASE = '';
+
+
+
 
 
 
