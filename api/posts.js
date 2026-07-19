@@ -7,7 +7,6 @@ function setCors(res) {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 }
 
-
 function authUser(req) {
   const header = req.headers?.authorization || '';
   const parts = String(header).split(' ');
@@ -33,7 +32,6 @@ function sortIdsDesc(ids) {
 export default async function handler(req, res) {
   setCors(res);
 
-  // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
@@ -43,7 +41,6 @@ export default async function handler(req, res) {
     token: process.env.UPSTASH_REDIS_REST_TOKEN,
   });
 
-  // QUICK DEBUG to detect env mismatch immediately
   const debugEnv = {
     hasRedisUrl: Boolean(process.env.UPSTASH_REDIS_REST_URL),
     hasRedisToken: Boolean(process.env.UPSTASH_REDIS_REST_TOKEN),
@@ -51,12 +48,13 @@ export default async function handler(req, res) {
   };
 
   if (req.method === 'GET') {
-    // First: use set-based index (no reliance on list behavior)
     let effectiveIds = [];
+
+    // Prefer the canonical index
     const setIds = await redis.smembers('posts:id');
     if (Array.isArray(setIds)) effectiveIds = sortIdsDesc(setIds);
 
-    // Optional: also merge list ids if present
+    // Merge legacy list index if it exists
     try {
       const listIds = await redis.lrange('posts', 0, 49);
       if (Array.isArray(listIds) && listIds.length) {
@@ -64,7 +62,7 @@ export default async function handler(req, res) {
         effectiveIds = sortIdsDesc([...merged]).slice(0, 50);
       }
     } catch {
-      // ignore list issues
+      // ignore
     }
 
     effectiveIds = effectiveIds.slice(0, 50);
@@ -81,10 +79,9 @@ export default async function handler(req, res) {
         missingPostObjects++;
         if (!firstMissingId) firstMissingId = id;
         continue;
-      
+      }
+
       try {
-        // Upstash Redis returns either string or object depending on the client config.
-        // If it's already an object, don't JSON.parse it.
         if (typeof raw === 'string') posts.push(JSON.parse(raw));
         else posts.push(raw);
       } catch (e) {
@@ -132,8 +129,6 @@ export default async function handler(req, res) {
     };
 
     await redis.set(`post:${postId}`, JSON.stringify(post));
-
-  
     await redis.sadd('posts:id', postId);
 
     return res.status(201).json({ post, env: debugEnv });
@@ -142,4 +137,3 @@ export default async function handler(req, res) {
   return res.status(405).json({ error: 'Method not allowed' });
 }
 
-}
