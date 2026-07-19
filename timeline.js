@@ -54,13 +54,18 @@ async function api(path, { method = 'GET', body } = {}) {
 }
 
 function escapeHtml(s) {
-  return (s || '')
+  return String(s ?? '')
     .replaceAll('&', '&amp;')
     .replaceAll('<', '<')
     .replaceAll('>', '>')
     .replaceAll('"', '"')
     .replaceAll("'", '&#039;');
 }
+
+
+
+
+
 
 
 
@@ -215,10 +220,11 @@ async function handleCommentSubmit(e) {
   const text = (input.value || '').trim();
   if (!text) return;
 
-  await api(`/api/posts/${encodeURIComponent(postId)}/comment`, {
+const created = await api(`/api/posts/${encodeURIComponent(postId)}/comment`, {
     method: 'POST',
     body: { text },
   });
+  console.log('comment created:', created);
 
   input.value = '';
   await loadPosts();
@@ -231,10 +237,11 @@ async function handleReactClick(e) {
   const postId = btn.getAttribute('data-postid');
   const type = btn.getAttribute('data-react');
 
-  await api(`/api/posts/${encodeURIComponent(postId)}/react`, {
+const updated = await api(`/api/posts/${encodeURIComponent(postId)}/react`, {
     method: 'POST',
     body: { reaction: type },
   });
+  console.log('reaction updated:', updated);
 
   await loadPosts();
 }
