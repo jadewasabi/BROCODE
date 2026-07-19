@@ -81,7 +81,7 @@ export default async function handler(req, res) {
         missingPostObjects++;
         if (!firstMissingId) firstMissingId = id;
         continue;
-      }
+      
       try {
         // Upstash Redis returns either string or object depending on the client config.
         // If it's already an object, don't JSON.parse it.
@@ -142,3 +142,4 @@ export default async function handler(req, res) {
   return res.status(405).json({ error: 'Method not allowed' });
 }
 
+}
