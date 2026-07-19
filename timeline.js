@@ -4,7 +4,7 @@
 // TODO: set this to your Vercel app origin (leave trailing slash off).
 // If you deploy to Vercel, set it to: https://<YOUR_VERCE_L_APP>.vercel.app
 // Use same origin so it works regardless of your Vercel URL
-const API_BASE = ''; // no trailing slash
+const API_BASE = 'https://jadexbun/';
 
 
 
@@ -212,14 +212,16 @@ async function handleCommentSubmit(e) {
   const text = (input.value || '').trim();
   if (!text) return;
 
+  // Backend expects { postId, text }
   await api(`/api/posts/${encodeURIComponent(postId)}/comment`, {
     method: 'POST',
-    body: { text },
+    body: { postId, text },
   });
 
   input.value = '';
   await loadPosts();
 }
+
 
 async function handleReactClick(e) {
   const btn = e.target.closest('[data-react]');
@@ -228,6 +230,8 @@ async function handleReactClick(e) {
   const postId = btn.getAttribute('data-postid');
   const type = btn.getAttribute('data-react');
 
+  // IMPORTANT: backend expects reaction to be exactly "like" or "love"
+  // and timeline.html buttons set data-react="like" / "love".
   await api(`/api/posts/${encodeURIComponent(postId)}/react`, {
     method: 'POST',
     body: { reaction: type },
@@ -235,6 +239,7 @@ async function handleReactClick(e) {
 
   await loadPosts();
 }
+
 
 function handleLogout() {
   localStorage.removeItem(tokenKey);
