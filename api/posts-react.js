@@ -27,6 +27,11 @@ export default async function handler(req, res) {
   if (!id) return res.status(400).json({ error: 'postId required' });
   if (r !== 'like' && r !== 'love') return res.status(400).json({ error: 'reaction must be like or love' });
 
+  // CORS (frontend calls Vercel endpoints from a static page)
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
   const redis = new Redis({
     url: process.env.UPSTASH_REDIS_REST_URL,
     token: process.env.UPSTASH_REDIS_REST_TOKEN,
