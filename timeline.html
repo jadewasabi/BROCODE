@@ -37,15 +37,15 @@
       <div class="grid">
         <section class="composer card">
           <h2>Create a post</h2>
-          <form id="postForm">
+          <form id="postForm" enctype="multipart/form-data">
             <div class="field">
               <label for="postText">Text (optional)</label>
               <textarea id="postText" placeholder="What's on your mind?"></textarea>
             </div>
             <div class="field">
-              <label for="postImage">Image URL (optional)</label>
-              <input id="postImage" type="text" placeholder="https://... (optional)" />
-              <div class="small">For simplicity, image upload is done via URL. (No server-side upload.)</div>
+              <label for="postImage">Image (optional)</label>
+              <input id="postImage" type="file" accept="image/*" />
+              <div class="small">Choose an image (upload handled by Vercel + Upstash). Drag & drop also works.</div>
             </div>
             <button class="primary" type="submit">Post</button>
           </form>
