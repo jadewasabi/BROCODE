@@ -1,6 +1,5 @@
-import orig from '../../../../../../api/posts-react.js';
-
+// Deprecated placeholder (kept empty intentionally).
 export default function handler(req, res) {
-  return orig(req, res);
+  res.status(404).json({ error: 'Use /api/posts/:id/react' });
 }
 
