@@ -98,16 +98,12 @@ function renderPosts(filtered) {
       ${p.text ? `<div class="post-content">${escapeHtml(p.text)}</div>` : ''}
 
       <div class="actions">
-        <button class="btn react-btn" data-react="like" data-postid="${
-          p.id
-        }">👍 Like (<span class="likeCount">${
-      p.reactions?.likes ?? 0
-    }</span>)</button>
-        <button class="btn react-btn" data-react="love" data-postid="${
-          p.id
-        }">❤️ Love (<span class="loveCount">${
-      p.reactions?.loves ?? 0
-    }</span>)</button>
+        <button class="btn react-btn upvote-btn" data-react="upvote" data-postid="${p.id}" title="Upvote to push to top">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="18 15 12 9 6 15"></polyline>
+          </svg>
+          Upvote
+        </button>
       </div>
 
       <div class="comment-box">
@@ -158,14 +154,11 @@ async function handleCreatePost(e) {
   const fileInput = document.getElementById('postImage');
 
   const text = (textEl.value || '').trim();
-  // UI accepts a URL OR a chosen file.
-  // Backend currently supports imageUrl string.
   let imageUrl = '';
   if (fileInput && fileInput.type === 'text') {
     imageUrl = (fileInput.value || '').trim();
   }
 
-  // If file input is actually a <input type="file">, we convert to data URL.
   const maybeFiles = fileInput?.files;
   if (maybeFiles && maybeFiles[0]) {
     imageUrl = await new Promise((resolve, reject) => {
@@ -204,7 +197,6 @@ async function handleCommentSubmit(e) {
   const text = (input.value || '').trim();
   if (!text) return;
 
-  // Use dedicated comment endpoint
   await api(`/api/posts/${encodeURIComponent(postId)}/comment`, {
     method: 'POST',
     body: { text },
@@ -222,7 +214,6 @@ async function handleReactClick(e) {
   const postId = btn.getAttribute('data-postid');
   const type = btn.getAttribute('data-react');
 
-  // Use dedicated react endpoint
   await api(`/api/posts/${encodeURIComponent(postId)}/react`, {
     method: 'POST',
     body: { reaction: type },
@@ -248,4 +239,3 @@ window.addEventListener('DOMContentLoaded', async () => {
 
   await loadPosts();
 });
-
