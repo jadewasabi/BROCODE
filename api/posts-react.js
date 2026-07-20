@@ -1,5 +1,5 @@
-import { Redis } from '@upstash/redis';
-import jwt from 'jsonwebtoken';
+const { Redis } = require('@upstash/redis');
+const jwt = require('jsonwebtoken');
 
 function authUser(req) {
   const header = req.headers?.authorization || '';
@@ -13,24 +13,24 @@ function authUser(req) {
   }
 }
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
+  // CORS headers (frontend calls from GitHub Pages)
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+  if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   const user = authUser(req);
   if (!user) return res.status(401).json({ error: 'unauthorized' });
 
   const { postId, reaction } = req.body || {};
-  const id = String(postId || req.body?.postId || '').trim();
+  const id = String(postId || '').trim();
   const r = String(reaction || '').trim();
-
 
   if (!id) return res.status(400).json({ error: 'postId required' });
   if (r !== 'like' && r !== 'love') return res.status(400).json({ error: 'reaction must be like or love' });
-
-  // CORS (frontend calls Vercel endpoints from a static page)
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
   const redis = new Redis({
     url: process.env.UPSTASH_REDIS_REST_URL,
@@ -57,5 +57,5 @@ export default async function handler(req, res) {
 
   await redis.set(`post:${id}`, JSON.stringify(post));
   return res.status(200).json({ ok: true, post });
-}
+};
 
