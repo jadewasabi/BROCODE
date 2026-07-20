@@ -218,8 +218,8 @@ async function handleCommentSubmit(e) {
   const text = (input.value || '').trim();
   if (!text) return;
 
-  // Backend expects { postId, text }
-  await api('/api/posts-comment', {
+  // Consolidated endpoint: /api/posts handles comments when { postId, text } is sent
+  await api('/api/posts', {
     method: 'POST',
     body: { postId, text },
   });
@@ -236,9 +236,8 @@ async function handleReactClick(e) {
   const postId = btn.getAttribute('data-postid');
   const type = btn.getAttribute('data-react');
 
-  // IMPORTANT: backend expects reaction to be exactly "like" or "love"
-  // and timeline.html buttons set data-react="like" / "love".
-  await api('/api/posts-react', {
+  // Consolidated endpoint: /api/posts handles reactions when { postId, reaction } is sent
+  await api('/api/posts', {
     method: 'POST',
     body: { postId, reaction: type },
   });
