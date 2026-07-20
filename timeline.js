@@ -1,13 +1,4 @@
-// IMPORTANT: If you are hosting timeline.html on GitHub Pages / file://,
-// set API_BASE to your Vercel deployment URL (origin only).
-// Example: const API_BASE = 'https://aid4programmers.vercel.app';
-// TODO: set this to your Vercel app origin (leave trailing slash off).
-// If you deploy to Vercel, set it to: https://<YOUR_VERCE_L_APP>.vercel.app
-// Use same origin so it works regardless of your Vercel URL
-// If this page is served from the same origin as the Next.js API routes,
-// you can use a relative API base so it works locally and in production.
-// Otherwise set API_BASE to your Vercel origin (no trailing slash).
-const API_BASE = '';
+const API_BASE = 'https://aid-4-prog.vercel.app';
 
 
 
@@ -218,10 +209,10 @@ async function handleCommentSubmit(e) {
   const text = (input.value || '').trim();
   if (!text) return;
 
-  // Consolidated endpoint: /api/posts handles comments when { postId, text } is sent
-  await api('/api/posts', {
+  // Use dedicated comment endpoint
+  await api(`/api/posts/${encodeURIComponent(postId)}/comment`, {
     method: 'POST',
-    body: { postId, text },
+    body: { text },
   });
 
   input.value = '';
@@ -236,10 +227,10 @@ async function handleReactClick(e) {
   const postId = btn.getAttribute('data-postid');
   const type = btn.getAttribute('data-react');
 
-  // Consolidated endpoint: /api/posts handles reactions when { postId, reaction } is sent
-  await api('/api/posts', {
+  // Use dedicated react endpoint
+  await api(`/api/posts/${encodeURIComponent(postId)}/react`, {
     method: 'POST',
-    body: { postId, reaction: type },
+    body: { reaction: type },
   });
 
   await loadPosts();
