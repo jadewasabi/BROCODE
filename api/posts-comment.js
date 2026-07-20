@@ -1,5 +1,5 @@
-const { Redis } = require('@upstash/redis');
-const jwt = require('jsonwebtoken');
+import { Redis } from '@upstash/redis';
+import jwt from 'jsonwebtoken';
 
 function authUser(req) {
   const header = req.headers?.authorization || '';
@@ -13,7 +13,7 @@ function authUser(req) {
   }
 }
 
-module.exports = async function handler(req, res) {
+export default async function handler(req, res) {
   // CORS headers (frontend calls from GitHub Pages)
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
@@ -49,5 +49,5 @@ module.exports = async function handler(req, res) {
 
   await redis.set(`post:${id}`, JSON.stringify(post));
   return res.status(200).json({ ok: true, post });
-};
+}
 
