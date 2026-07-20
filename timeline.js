@@ -219,7 +219,7 @@ async function handleCommentSubmit(e) {
   if (!text) return;
 
   // Backend expects { postId, text }
-  await api(`/api/posts/${encodeURIComponent(postId)}/comment`, {
+  await api('/api/posts-comment', {
     method: 'POST',
     body: { postId, text },
   });
@@ -238,9 +238,9 @@ async function handleReactClick(e) {
 
   // IMPORTANT: backend expects reaction to be exactly "like" or "love"
   // and timeline.html buttons set data-react="like" / "love".
-  await api(`/api/posts/${encodeURIComponent(postId)}/react`, {
+  await api('/api/posts-react', {
     method: 'POST',
-    body: { reaction: type },
+    body: { postId, reaction: type },
   });
 
   await loadPosts();
