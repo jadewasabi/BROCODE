@@ -1,10 +1,5 @@
 const API_BASE = 'https://aid-4-prog.vercel.app';
 
-
-
-
-
-
 const tokenKey = 'aid4_token';
 
 function getToken() {
