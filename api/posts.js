@@ -88,6 +88,9 @@ export default async function handler(req, res) {
       }
     }
 
+    // Sort posts by createdAt descending (newest/upvoted first)
+    posts.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+
     return res.status(200).json({
       posts,
       env: debugEnv,
