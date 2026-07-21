@@ -5,11 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Timeline</title>
 <link rel="stylesheet" href="timeline.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   </head>
   <body>
 <header class="header">
       <nav class="navbar">
-        <h2 class="logo"><a href="#">BroCode</a></h2>
+        <h2 class="logo"><a href="#">AID4PROGRAMMERS</a></h2>
         <input type="checkbox" id="menu-toggle" />
         <label for="menu-toggle" id="hamburger-btn">
           <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24">
@@ -18,14 +19,27 @@
         </label>
         <ul class="links">
           <li><a href="index.html">Home</a></li>
-          <li><a href="about.html">About</a></li>
-          <li><a href="services.html">Services</a></li>
-          <li><a href="contact.html">Contact Us</a></li>
+          <li><a href="#">About Us</a></li>
+          <li><a href="#">Services</a></li>
+          <li><a href="#">Portfolio</a></li>
+          <li><a href="#">Contact Us</a></li>
         </ul>
       </nav>
     </header>
 
     <main class="main">
+      <!-- School & Strand Header Bar -->
+      <div class="school-header">
+        <div class="school-left">
+          <img src="logoo.png" alt="School Logo" class="school-logo" />
+          <span class="school-name">Taal Highschool</span>
+        </div>
+        <div class="school-right">
+          <i class="fas fa-laptop-code"></i>
+          <span class="strand-name">Computer Programming</span>
+        </div>
+      </div>
+
       <div class="topbar">
         <div class="search">
           <input id="search" type="text" placeholder="Search by username or post..." />
@@ -38,13 +52,13 @@
           <h2>Create a post</h2>
           <form id="postForm" enctype="multipart/form-data">
             <div class="field">
-              <label for="postText">Text...</label>
-              <textarea id="postText" placeholder="Create a post..."></textarea>
+              <label for="postText">Text (optional)</label>
+              <textarea id="postText" placeholder="What's on your mind?"></textarea>
             </div>
             <div class="field">
-              <label for="postImage">Select image</label>
+              <label for="postImage">Image (optional)</label>
               <input id="postImage" type="file" accept="image/*" />
-              <div class="small"></div>
+              <div class="small">Uploads are stored as data URLs in Upstash (Redis). Works for multi-user viewing.</div>
             </div>
             <button class="primary" type="submit">Post</button>
           </form>
