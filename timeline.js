@@ -57,6 +57,22 @@ function fmtTime(ts) {
   }
 }
 
+function parseJwt(token) {
+  try {
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    );
+    return JSON.parse(jsonPayload);
+  } catch (_) {
+    return {};
+  }
+}
+
 let allPosts = [];
 
 function renderPosts(filtered) {
@@ -67,6 +83,8 @@ function renderPosts(filtered) {
     postsEl.innerHTML = '<div class="small">No posts yet.</div>';
     return;
   }
+
+  const currentUser = (parseJwt(getToken()).sub) || '';
 
   for (const p of filtered) {
     const el = document.createElement('div');
@@ -104,6 +122,17 @@ function renderPosts(filtered) {
           </svg>
           Upvote
         </button>
+        ${
+          p.username === currentUser
+            ? `<button class="btn delete-btn" data-action="delete" data-postid="${p.id}" title="Delete this post">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+                Delete
+              </button>`
+            : ''
+        }
       </div>
 
       <div class="comment-box">
@@ -223,9 +252,29 @@ async function handleReactClick(e) {
 }
 
 
+async function handleDeleteClick(e) {
+  const btn = e.target.closest('[data-action="delete"]');
+  if (!btn) return;
+
+  if (!confirm('Are you sure you want to delete this post?')) return;
+
+  const postId = btn.getAttribute('data-postid');
+
+  await api(`/api/posts/${encodeURIComponent(postId)}/delete`, {
+    method: 'DELETE',
+  });
+
+  await loadPosts();
+}
+
 function handleLogout() {
   localStorage.removeItem(tokenKey);
   window.location.href = 'join.html';
+}
+
+async function handlePostsClick(e) {
+  handleReactClick(e);
+  handleDeleteClick(e);
 }
 
 window.addEventListener('DOMContentLoaded', async () => {
@@ -235,7 +284,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('logoutBtn').addEventListener('click', handleLogout);
   document.getElementById('search').addEventListener('input', applySearchAndRender);
   document.getElementById('posts').addEventListener('submit', handleCommentSubmit);
-  document.getElementById('posts').addEventListener('click', handleReactClick);
+  document.getElementById('posts').addEventListener('click', handlePostsClick);
 
   await loadPosts();
 });
