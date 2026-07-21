@@ -13,26 +13,16 @@ body {
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
-  will-change: opacity, transform;
-  animation: pageEnter 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  animation: pageReveal 1s cubic-bezier(0.77, 0, 0.18, 1) forwards;
 }
 
-/* Creative page entrance - smooth, GPU-accelerated */
-@keyframes pageEnter {
+/* Horizontal curtain reveal - no opacity, no layout shift */
+@keyframes pageReveal {
   0% {
-    opacity: 0;
-    transform: scale(0.96) translateY(20px);
-    filter: blur(6px);
-  }
-  60% {
-    opacity: 1;
-    transform: scale(1.005) translateY(-2px);
-    filter: blur(0px);
+    clip-path: polygon(0 0, 0 0, 0 100%, 0 100%);
   }
   100% {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-    filter: blur(0px);
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
   }
 }
 
