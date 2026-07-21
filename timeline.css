@@ -5,7 +5,7 @@
 body{min-height:100vh;width:100%;background:linear-gradient(135deg, #87CEEB 0%, #6CB4EE 50%, #5BA3D9 100%);background-attachment:fixed;color:#fff}
 
 /* Match the fixed navbar behavior used in your other pages */
-.header{position:fixed;top:0;left:0;width:100%;z-index:10}
+.header{position:fixed;top:0;left:0;width:100%;z-index:1000}
 
 .navbar{display:flex;align-items:center;justify-content:space-between;max-width:1200px;margin:0 auto;padding:20px 15px}
 .navbar .logo a{font-size:1.8rem;text-decoration:none;color:#fff}
@@ -16,7 +16,7 @@ body{min-height:100vh;width:100%;background:linear-gradient(135deg, #87CEEB 0%, 
 #hamburger-btn{font-size:1.8rem;color:#fff;cursor:pointer;display:none;order:1}
 @media screen and (max-width:1023px){
   .navbar .logo a{font-size:1.5rem}
-  .links{position:fixed;left:-100%;top:75px;width:100%;height:100vh;padding-top:50px;background:#175d69;flex-direction:column;transition:0.3s ease}
+  .links{position:fixed;left:-100%;top:75px;width:100%;height:100vh;padding-top:50px;background:#175d69;flex-direction:column;transition:0.3s ease;z-index:999}
   .navbar #menu-toggle:checked ~ .links{left:0}
   .navbar #hamburger-btn{display:block}
 }
