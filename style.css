@@ -13,13 +13,6 @@ body {
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
-  animation: pageReveal 0.7s ease forwards;
-}
-
-/* Simple rise-up - no opacity (no white flash) */
-@keyframes pageReveal {
-  0% { transform: translateY(30px); }
-  100% { transform: translateY(0); }
 }
 
 .header {
