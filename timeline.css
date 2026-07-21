@@ -2,8 +2,8 @@
 @import url("https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600;700&display=swap");
 
 *{margin:0;padding:0;box-sizing:border-box;font-family:"Open Sans",sans-serif}
-body{min-height:100vh;width:100%;background:linear-gradient(135deg, #87CEEB 0%, #6CB4EE 50%, #5BA3D9 100%);background-attachment:fixed;color:#fff;will-change:opacity,transform;animation:pageEnter .7s cubic-bezier(.25,.46,.45,.94) forwards}
-@keyframes pageEnter{0%{opacity:0;transform:scale(.96) translateY(20px);filter:blur(6px)}60%{opacity:1;transform:scale(1.005) translateY(-2px);filter:blur(0)}100%{opacity:1;transform:scale(1) translateY(0);filter:blur(0)}}
+body{min-height:100vh;width:100%;background:linear-gradient(135deg, #87CEEB 0%, #6CB4EE 50%, #5BA3D9 100%);background-attachment:fixed;color:#fff;animation:pageReveal 1s cubic-bezier(.77,0,.18,1) forwards}
+@keyframes pageReveal{0%{clip-path:polygon(0 0,0 0,0 100%,0 100%)}100%{clip-path:polygon(0 0,100% 0,100% 100%,0 100%)}}
 
 /* Match the fixed navbar behavior used in your other pages */
 .header{position:fixed;top:0;left:0;width:100%;z-index:1000}
@@ -169,4 +169,3 @@ textarea{min-height:90px;resize:vertical;padding:10px 12px;border-radius:8px;bor
     font-size: 1rem;
   }
 }
-
