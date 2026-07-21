@@ -2,7 +2,7 @@
 @import url("https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600;700&display=swap");
 
 *{margin:0;padding:0;box-sizing:border-box;font-family:"Open Sans",sans-serif}
-body{min-height:100vh;width:100%;background-image:url(bg1.png);background-repeat:no-repeat;background-size:cover;background-position:center;color:#fff}
+body{min-height:100vh;width:100%;background:linear-gradient(135deg, #87CEEB 0%, #6CB4EE 50%, #5BA3D9 100%);background-attachment:fixed;color:#fff}
 
 /* Match the fixed navbar behavior used in your other pages */
 .header{position:fixed;top:0;left:0;width:100%;z-index:10}
@@ -83,4 +83,89 @@ textarea{min-height:90px;resize:vertical;padding:10px 12px;border-radius:8px;bor
 .comment-form{display:flex;gap:10px}
 .comment-form input{flex:1;padding:9px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.35);background:rgba(0,0,0,.15);color:#fff;outline:none}
 .comment-form button{white-space:nowrap}
+
+/* School & Strand Header */
+.school-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+  padding: 14px 24px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.school-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.school-logo {
+  width: 50px;
+  height: 50px;
+  object-fit: contain;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.school-name {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.5px;
+}
+
+.school-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.school-right i {
+  font-size: 2.2rem;
+  color: #fff;
+}
+
+.strand-name {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #fff;
+  letter-spacing: 0.3px;
+}
+
+@media screen and (max-width: 600px) {
+  .school-header {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 14px 16px;
+  }
+  .school-left {
+    flex-direction: column;
+    align-items: center;
+  }
+  .school-right {
+    flex-direction: column;
+    align-items: center;
+  }
+  .school-logo {
+    width: 44px;
+    height: 44px;
+  }
+  .school-name {
+    font-size: 1.2rem;
+  }
+  .school-right i {
+    font-size: 1.8rem;
+  }
+  .strand-name {
+    font-size: 1rem;
+  }
+}
 
