@@ -31,7 +31,7 @@ export default async function handler(req, res) {
   const r = String(req.body?.reaction || '').trim();
 
   if (!id) return res.status(400).json({ error: 'postId required' });
-  if (r !== 'like' && r !== 'love') return res.status(400).json({ error: 'reaction must be like or love' });
+  if (r !== 'like' && r !== 'love' && r !== 'upvote') return res.status(400).json({ error: 'reaction must be like, love, or upvote' });
 
   const redis = new Redis({
     url: process.env.UPSTASH_REDIS_REST_URL,
@@ -43,6 +43,13 @@ export default async function handler(req, res) {
   const post = JSON.parse(raw);
 
   // Per-user toggles using sets
+  // Handle upvote: bump post to top of timeline by updating createdAt
+  if (r === 'upvote') {
+    post.createdAt = Math.floor(Date.now() / 1000);
+    await redis.set(`post:${id}`, JSON.stringify(post));
+    return res.status(200).json({ ok: true, post });
+  }
+
   const setKey = `post:${id}:react:${r}`;
   const already = await redis.sismember(setKey, user);
   if (already) {
