@@ -2,8 +2,7 @@
 @import url("https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600;700&display=swap");
 
 *{margin:0;padding:0;box-sizing:border-box;font-family:"Open Sans",sans-serif}
-body{min-height:100vh;width:100%;background:linear-gradient(135deg, #87CEEB 0%, #6CB4EE 50%, #5BA3D9 100%);background-attachment:fixed;color:#fff;animation:pageReveal 0.7s ease forwards}
-@keyframes pageReveal{0%{transform:translateY(30px)}100%{transform:translateY(0)}}
+body{min-height:100vh;width:100%;background:linear-gradient(135deg, #87CEEB 0%, #6CB4EE 50%, #5BA3D9 100%);color:#fff;}
 
 /* Match the fixed navbar behavior used in your other pages */
 .header{position:fixed;top:0;left:0;width:100%;z-index:1000}
