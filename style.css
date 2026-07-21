@@ -13,17 +13,13 @@ body {
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
-  animation: pageReveal 1s cubic-bezier(0.77, 0, 0.18, 1) forwards;
+  animation: pageReveal 0.7s ease forwards;
 }
 
-/* Horizontal curtain reveal - no opacity, no layout shift */
+/* Simple rise-up - no opacity (no white flash) */
 @keyframes pageReveal {
-  0% {
-    clip-path: polygon(0 0, 0 0, 0 100%, 0 100%);
-  }
-  100% {
-    clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
-  }
+  0% { transform: translateY(30px); }
+  100% { transform: translateY(0); }
 }
 
 .header {
@@ -438,71 +434,28 @@ body {
   color: #47b2e4;
 }
 
-/* Responsive for services & contact */
 @media screen and (max-width: 900px) {
   .services-container,
-  .contact-container {
-    gap: 30px;
-  }
-  .service-card {
-    flex: 1 1 240px;
-    max-width: 320px;
-    padding: 30px 20px;
-  }
-  .service-icon-circle {
-    width: 120px;
-    height: 120px;
-  }
-  .service-icon-circle i {
-    font-size: 3.2rem;
-  }
-  .contact-card {
-    max-width: 450px;
-    padding: 40px 30px;
-  }
-  .contact-icon-circle {
-    width: 140px;
-    height: 140px;
-  }
-  .contact-icon-circle i {
-    font-size: 4.2rem;
-  }
+  .contact-container { gap: 30px; }
+  .service-card { flex: 1 1 240px; max-width: 320px; padding: 30px 20px; }
+  .service-icon-circle { width: 120px; height: 120px; }
+  .service-icon-circle i { font-size: 3.2rem; }
+  .contact-card { max-width: 450px; padding: 40px 30px; }
+  .contact-icon-circle { width: 140px; height: 140px; }
+  .contact-icon-circle i { font-size: 4.2rem; }
 }
 
 @media screen and (max-width: 600px) {
   .services-section,
-  .contact-section {
-    padding: 90px 15px 40px;
-  }
+  .contact-section { padding: 90px 15px 40px; }
   .services-container,
-  .contact-container {
-    flex-direction: column;
-    align-items: center;
-    gap: 25px;
-  }
-  .service-card {
-    max-width: 100%;
-    width: 100%;
-  }
-  .service-icon-circle {
-    width: 110px;
-    height: 110px;
-  }
-  .service-icon-circle i {
-    font-size: 2.8rem;
-  }
-  .contact-card {
-    max-width: 100%;
-    width: 100%;
-    padding: 30px 20px;
-  }
-  .contact-icon-circle {
-    width: 130px;
-    height: 130px;
-  }
-  .contact-icon-circle i {
-    font-size: 3.8rem;
-  }
+  .contact-container { flex-direction: column; align-items: center; gap: 25px; }
+  .service-card { max-width: 100%; width: 100%; }
+  .service-icon-circle { width: 110px; height: 110px; }
+  .service-icon-circle i { font-size: 2.8rem; }
+  .contact-card { max-width: 100%; width: 100%; padding: 30px 20px; }
+  .contact-icon-circle { width: 130px; height: 130px; }
+  .contact-icon-circle i { font-size: 3.8rem; }
 }
 
 /* ===== About Page Styles ===== */
@@ -548,7 +501,6 @@ body {
   border-color: #47b2e4;
 }
 
-/* Image Circle Container */
 .image-circle {
   width: 180px;
   height: 180px;
@@ -571,7 +523,6 @@ body {
   object-fit: cover;
 }
 
-/* Icon Circle for symbol containers */
 .icon-circle {
   width: 140px;
   height: 140px;
@@ -615,51 +566,19 @@ body {
   line-height: 1.7;
 }
 
-/* Responsive */
 @media screen and (max-width: 900px) {
-  .about-container {
-    gap: 30px;
-  }
-  .about-card {
-    flex: 1 1 240px;
-    max-width: 320px;
-    padding: 30px 20px;
-  }
-  .image-circle {
-    width: 150px;
-    height: 150px;
-  }
-  .icon-circle {
-    width: 120px;
-    height: 120px;
-  }
-  .icon-circle i {
-    font-size: 3.2rem;
-  }
+  .about-container { gap: 30px; }
+  .about-card { flex: 1 1 240px; max-width: 320px; padding: 30px 20px; }
+  .image-circle { width: 150px; height: 150px; }
+  .icon-circle { width: 120px; height: 120px; }
+  .icon-circle i { font-size: 3.2rem; }
 }
 
 @media screen and (max-width: 600px) {
-  .about-section {
-    padding: 90px 15px 40px;
-  }
-  .about-container {
-    flex-direction: column;
-    align-items: center;
-    gap: 25px;
-  }
-  .about-card {
-    max-width: 100%;
-    width: 100%;
-  }
-  .image-circle {
-    width: 140px;
-    height: 140px;
-  }
-  .icon-circle {
-    width: 110px;
-    height: 110px;
-  }
-  .icon-circle i {
-    font-size: 2.8rem;
-  }
+  .about-section { padding: 90px 15px 40px; }
+  .about-container { flex-direction: column; align-items: center; gap: 25px; }
+  .about-card { max-width: 100%; width: 100%; }
+  .image-circle { width: 140px; height: 140px; }
+  .icon-circle { width: 110px; height: 110px; }
+  .icon-circle i { font-size: 2.8rem; }
 }
