@@ -166,16 +166,16 @@ textarea{min-height:90px;resize:vertical;padding:10px 12px;border-radius:8px;bor
 @media screen and (max-width: 600px) {
   .school-header {
     flex-direction: column;
-    align-items: center;
-    text-align: center;
+    align-items: flex-start;
+    text-align: left;
     padding: 14px 16px;
   }
   .school-left {
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
   }
   .school-right {
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
   }
   .school-logo { width: 44px; height: 44px; }
