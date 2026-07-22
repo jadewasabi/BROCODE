@@ -21,7 +21,6 @@ body{min-height:100vh;width:100%;background:linear-gradient(135deg, #87CEEB 0%, 
   .navbar #hamburger-btn{display:block}
 }
 
-
 /* Reuse navbar styles from login.css/style.css by keeping the same classes */
 
 .main{padding-top:110px;max-width:1100px;margin:0 auto;padding-left:15px;padding-right:15px}
@@ -74,7 +73,6 @@ textarea{min-height:90px;resize:vertical;padding:10px 12px;border-radius:8px;bor
 .upvote-btn svg{transition:.2s ease}
 .upvote-btn:hover svg{stroke:#47b2e4;transform:translateY(-2px)}
 
-
 .comment-box{margin-top:12px;border-top:1px solid rgba(255,255,255,.2);padding-top:12px}
 .comment-list{display:flex;flex-direction:column;gap:8px;margin-bottom:10px}
 .comment{font-size:13px;opacity:.95}
@@ -83,6 +81,32 @@ textarea{min-height:90px;resize:vertical;padding:10px 12px;border-radius:8px;bor
 .comment-form{display:flex;gap:10px}
 .comment-form input{flex:1;padding:9px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.35);background:rgba(0,0,0,.15);color:#fff;outline:none}
 .comment-form button{white-space:nowrap}
+
+.msg-user-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,.55);
+  background: rgba(0,0,0,.15);
+  color: #fff;
+  cursor: pointer;
+  transition: .2s ease;
+}
+.msg-user-btn:hover {
+  background: rgba(71,178,228,.2);
+  border-color: #47b2e4;
+}
+
+.messages-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.messages-btn i {
+  font-size: 1rem;
+}
 
 /* School & Strand Header */
 .school-header {
