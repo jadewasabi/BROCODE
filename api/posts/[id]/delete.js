@@ -47,6 +47,7 @@ export default async function handler(req, res) {
   await redis.del(`post:${id}`);
   await redis.srem('posts:id', id);
   await redis.zrem('posts:bytime', id);
+  await redis.zrem('posts:upvoted', id);
   await redis.del(`post:comments:${id}`);
   await redis.del(`post:${id}:react:like`);
   await redis.del(`post:${id}:react:love`);
