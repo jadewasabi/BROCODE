@@ -41,19 +41,36 @@ export default async function handler(req, res) {
     const limit = Math.min(50, Math.max(1, parseInt(req.query.limit) || 15));
     const offset = (page - 1) * limit;
 
-    // --- Get post IDs (try sorted set first, fallback to old set) ---
-    let postIds = [];
+    // --- TWO-TIER RANKING ---
+    // Tier 1: Upvoted posts (sorted by upvote time, newest first)
+    // Tier 2: Non-upvoted posts (sorted by creation time, newest first)
+    // Upvoted posts ALWAYS stay above non-upvoted posts
+    
+    let upvotedIds = [];
+    let regularIds = [];
+
     try {
-      postIds = await redis.zrevrange('posts:bytime', 0, -1);
+      upvotedIds = await redis.zrevrange('posts:upvoted', 0, -1);
     } catch { /* ignore */ }
 
-    if (!postIds || postIds.length === 0) {
+    try {
+      regularIds = await redis.zrevrange('posts:bytime', 0, -1);
+    } catch { /* ignore */ }
+
+    // Fallback to old set if sorted sets are empty (migration)
+    if (!regularIds || regularIds.length === 0) {
       const setIds = await redis.smembers('posts:id');
-      postIds = (setIds || []).map(String).sort((a, b) => Number(b) - Number(a));
+      regularIds = (setIds || []).map(String).sort((a, b) => Number(b) - Number(a));
     }
 
-    const total = postIds.length;
-    const pageIds = postIds.slice(offset, offset + limit);
+    // Remove upvoted IDs from regular IDs (they appear in Tier 1)
+    const upvotedSet = new Set(upvotedIds.map(String));
+    regularIds = regularIds.filter(id => !upvotedSet.has(String(id)));
+
+    // Combine: upvoted first, then regular
+    const allOrderedIds = [...upvotedIds, ...regularIds];
+    const total = allOrderedIds.length;
+    const pageIds = allOrderedIds.slice(offset, offset + limit);
 
     // --- Single mget() call instead of N individual redis.get() calls ---
     const keys = pageIds.map(id => `post:${id}`);
@@ -67,12 +84,16 @@ export default async function handler(req, res) {
         const post = typeof raw === 'string' ? JSON.parse(raw) : raw;
         // Strip embedded comments from response — they load separately now
         const { comments, ...postData } = post;
-        const cleaned = { ...postData, commentCount: Array.isArray(comments) ? comments.length : 0 };
+        const cleaned = { 
+          ...postData, 
+          commentCount: Array.isArray(comments) ? comments.length : 0,
+          isUpvoted: postData.upvotedAt ? true : false 
+        };
         posts.push(cleaned);
       } catch { /* skip corrupt posts */ }
     }
 
-    // Re-sort to match the ZREVRANGE / sorted order
+    // Re-sort to match the combined order
     const postMap = new Map(posts.map(p => [String(p.id), p]));
     const orderedPosts = pageIds.map(id => postMap.get(String(id))).filter(Boolean);
 
