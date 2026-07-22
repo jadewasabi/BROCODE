@@ -1,4 +1,4 @@
-const API_BASE = 'https://bro-code.vercel.app';
+const API_BASE = 'https://bro-codie.vercel.app';
 
 const tokenKey = 'aid4_token';
 
