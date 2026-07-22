@@ -23,12 +23,6 @@ function makeId(n) {
   return String(n);
 }
 
-function sortIdsDesc(ids) {
-  return (ids || [])
-    .map(String)
-    .sort((a, b) => Number(b) - Number(a));
-}
-
 export default async function handler(req, res) {
   setCors(res);
 
@@ -41,67 +35,56 @@ export default async function handler(req, res) {
     token: process.env.UPSTASH_REDIS_REST_TOKEN,
   });
 
-  const debugEnv = {
-    hasRedisUrl: Boolean(process.env.UPSTASH_REDIS_REST_URL),
-    hasRedisToken: Boolean(process.env.UPSTASH_REDIS_REST_TOKEN),
-    jwtSecretSet: Boolean(process.env.JWT_SECRET),
-  };
-
   if (req.method === 'GET') {
-    let effectiveIds = [];
+    // --- Pagination ---
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(50, Math.max(1, parseInt(req.query.limit) || 15));
+    const offset = (page - 1) * limit;
 
-    const setIds = await redis.smembers('posts:id');
-    if (Array.isArray(setIds)) effectiveIds = sortIdsDesc(setIds);
-
+    // --- Get post IDs (try sorted set first, fallback to old set) ---
+    let postIds = [];
     try {
-      const listIds = await redis.lrange('posts', 0, 49);
-      if (Array.isArray(listIds) && listIds.length) {
-        const merged = new Set([...effectiveIds, ...listIds.map(String)]);
-        effectiveIds = sortIdsDesc([...merged]).slice(0, 50);
-      }
-    } catch {
-      // ignore
+      postIds = await redis.zrevrange('posts:bytime', 0, -1);
+    } catch { /* ignore */ }
+
+    if (!postIds || postIds.length === 0) {
+      const setIds = await redis.smembers('posts:id');
+      postIds = (setIds || []).map(String).sort((a, b) => Number(b) - Number(a));
     }
 
-    effectiveIds = effectiveIds.slice(0, 50);
+    const total = postIds.length;
+    const pageIds = postIds.slice(offset, offset + limit);
+
+    // --- Single mget() call instead of N individual redis.get() calls ---
+    const keys = pageIds.map(id => `post:${id}`);
+    const rawPosts = keys.length > 0 ? await redis.mget(...keys) : [];
 
     const posts = [];
-    let missingPostObjects = 0;
-    let parseFailures = 0;
-    let firstMissingId = null;
-    let firstParseFail = null;
-
-    for (const id of effectiveIds) {
-      const raw = await redis.get(`post:${id}`);
-      if (!raw) {
-        missingPostObjects++;
-        if (!firstMissingId) firstMissingId = id;
-        continue;
-      }
-
+    for (let i = 0; i < pageIds.length; i++) {
+      const raw = rawPosts[i];
+      if (!raw) continue;
       try {
-        if (typeof raw === 'string') posts.push(JSON.parse(raw));
-        else posts.push(raw);
-      } catch (e) {
-        parseFailures++;
-        if (!firstParseFail) firstParseFail = { id, rawSnippet: String(raw).slice(0, 120) };
-      }
+        const post = typeof raw === 'string' ? JSON.parse(raw) : raw;
+        // Strip embedded comments from response — they load separately now
+        const { comments, ...postData } = post;
+        const cleaned = { ...postData, commentCount: Array.isArray(comments) ? comments.length : 0 };
+        posts.push(cleaned);
+      } catch { /* skip corrupt posts */ }
     }
 
-    // Sort posts by createdAt descending (newest/upvoted first)
-    posts.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    // Re-sort to match the ZREVRANGE / sorted order
+    const postMap = new Map(posts.map(p => [String(p.id), p]));
+    const orderedPosts = pageIds.map(id => postMap.get(String(id))).filter(Boolean);
+
+    // --- Cache hint for CDN / browser ---
+    res.setHeader('Cache-Control', 'public, max-age=3, s-maxage=10, stale-while-revalidate=30');
 
     return res.status(200).json({
-      posts,
-      env: debugEnv,
-      debugIndex: {
-        idsCount: effectiveIds.length,
-        sampleIds: effectiveIds.slice(0, 5),
-        missingPostObjects,
-        parseFailures,
-        firstMissingId,
-        firstParseFail,
-      },
+      posts: orderedPosts,
+      total,
+      page,
+      limit,
+      hasMore: offset + limit < total,
     });
   }
 
@@ -118,21 +101,25 @@ export default async function handler(req, res) {
 
     const id = await redis.incr('post:id');
     const postId = makeId(id);
+    const now = Math.floor(Date.now() / 1000);
 
     const post = {
       id: postId,
       username: user,
       text: t || null,
       imageUrl: img || null,
-      createdAt: Math.floor(Date.now() / 1000),
+      createdAt: now,
       reactions: { likes: 0, loves: 0 },
-      comments: [],
+      // comments no longer stored inline — use post:comments:{id} list
     };
 
     await redis.set(`post:${postId}`, JSON.stringify(post));
+    // Add to sorted set for fast timeline ordering (score = createdAt)
+    await redis.zadd('posts:bytime', { score: now, member: postId });
+    // Keep backward compat with old set
     await redis.sadd('posts:id', postId);
 
-    return res.status(201).json({ post, env: debugEnv });
+    return res.status(201).json({ post });
   }
 
   return res.status(405).json({ error: 'Method not allowed' });
