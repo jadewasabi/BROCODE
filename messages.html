@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Messages</title>
+  <link rel="stylesheet" href="messages.css" />
+</head>
+<body>
+  <header class="header">
+    <nav class="navbar">
+      <h2 class="logo"><a href="#">AID4PROGRAMMERS</a></h2>
+      <input type="checkbox" id="menu-toggle" />
+      <label for="menu-toggle" id="hamburger-btn">
+        <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24">
+          <path d="M3 12h18M3 6h18M3 18h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </label>
+      <ul class="links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="timeline.html">Timeline</a></li>
+        <li><a href="messages.html">Messages</a></li>
+        <li><a href="about.html">About Us</a></li>
+        <li><a href="services.html">Services</a></li>
+        <li><a href="contact.html">Contact Us</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <div class="messages-app">
+    <!-- Left Sidebar: Conversation List -->
+    <div class="conv-sidebar" id="convSidebar">
+      <div class="sidebar-header">
+        <h2>💬 Messages</h2>
+        <button class="new-chat-btn" id="newChatBtn" title="Start a new conversation"><i class="fas fa-plus"></i></button>
+      </div>
+      <div class="conv-search">
+        <i class="fas fa-search"></i>
+        <input type="text" id="convSearch" placeholder="Search conversations..." />
+      </div>
+      <div class="conv-list" id="convList"></div>
+
+    <!-- Right Panel: Chat View -->
+    <div class="chat-panel" id="chatPanel">
+      <!-- Empty state when no conversation is selected -->
+      <div class="chat-placeholder" id="chatPlaceholder">
+        <i class="fas fa-comments"></i>
+        <p>Select a conversation<br/>or start a new one</p>
+      </div>
+
+      <!-- Active chat (hidden by default) -->
+      <div id="activeChat" style="display:none;flex-direction:column;height:100%">
+        <div class="chat-header">
+          <button class="back-btn" id="backBtn" title="Back to conversations"><i class="fas fa-arrow-left"></i></button>
+          <div class="chat-avatar" id="chatAvatar">U</div>
+          <div>
+            <div class="chat-user-name" id="chatUserName">User</div>
+            <div class="chat-user-status" id="chatUserStatus">Online</div>
+        </div>
+
+        <div class="messages-area" id="messagesArea"></div>
+
+        <div class="chat-input-area">
+          <form class="chat-input-form" id="chatForm">
+            <input type="text" id="msgInput" placeholder="Type a message..." autocomplete="off" required maxlength="2000" />
+            <button class="send-btn" type="submit"><i class="fas fa-paper-plane"></i></button>
+          </form>
+        </div>
+    </div>
+
+  <!-- New Chat Modal -->
+  <div class="modal-overlay" id="newChatModal">
+    <div class="modal-box">
+      <h3>New Conversation</h3>
+      <p>Enter the username of the person you want to message</p>
+      <input type="text" id="newChatUser" placeholder="Username..." />
+      <div id="newChatError" style="color:#ef4444;font-size:0.85rem;margin-bottom:10px;display:none;"></div>
+      <div class="modal-actions">
+        <button class="modal-cancel" id="modalCancel">Cancel</button>
+        <button class="modal-start" id="modalStart">Start Chat</button>
+      </div>
+  </div>
+
+  <script src="messages.js"></script>
+</body>
+</html>
