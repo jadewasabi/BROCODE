@@ -228,6 +228,14 @@ body{
   color:rgba(255,255,255,0.45);
 }
 
+/* Active chat wrapper — fills the chat panel using flex */
+#activeChat{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  min-height:0;
+}
+
 /* Messages area */
 .messages-area{
   flex:1;
