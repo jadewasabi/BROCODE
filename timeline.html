@@ -53,13 +53,13 @@
         <h2>Create a post</h2>
         <form id="postForm" enctype="multipart/form-data">
           <div class="field">
-            <label for="postText">Text (optional)</label>
+            <label for="postText">Type texts here</label>
             <textarea id="postText" placeholder="What's on your mind?"></textarea>
           </div>
           <div class="field">
-            <label for="postImage">Image (optional)</label>
+            <label for="postImage">Select an image</label>
             <input id="postImage" type="file" accept="image/*" />
-            <div class="small">Uploads are stored as data URLs in Upstash (Redis). Works for multi-user viewing.</div>
+            <div class="small"></div>
           <button class="primary" type="submit">Post</button>
         </form>
         <div class="small" id="postError" style="margin-top:10px;display:none;"></div>
