@@ -378,15 +378,21 @@ async function handleReactClick(e) {
 
   if (type !== 'upvote') return; // only upvote supported in UI
 
-  // Optimistic: bump post to top immediately
+  // Optimistic: mark as upvoted and bump to top tier immediately
   const post = updatePostInCache(postId, p => {
-    p.createdAt = Math.floor(Date.now() / 1000);
+    p.isUpvoted = true;
+    p.upvotedAt = Math.floor(Date.now() / 1000);
     return p;
   });
 
   if (post) {
-    // Move to top
-    allPosts.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    // Two-tier sort: upvoted posts first (by upvote time), then regular (by creation time)
+    allPosts.sort((a, b) => {
+      if (a.isUpvoted && !b.isUpvoted) return -1;
+      if (!a.isUpvoted && b.isUpvoted) return 1;
+      if (a.isUpvoted && b.isUpvoted) return (b.upvotedAt || 0) - (a.upvotedAt || 0);
+      return (b.createdAt || 0) - (a.createdAt || 0);
+    });
     applySearchAndRender();
   }
 
