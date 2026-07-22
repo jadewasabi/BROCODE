@@ -26,10 +26,9 @@
   </header>
 
   <div class="messages-app">
-    <!-- Left Sidebar: Conversation List -->
     <div class="conv-sidebar" id="convSidebar">
       <div class="sidebar-header">
-        <h2>💬 Messages</h2>
+        <h2>Messages</h2>
         <button class="new-chat-btn" id="newChatBtn" title="Start a new conversation"><i class="fas fa-plus"></i></button>
       </div>
       <div class="conv-search">
@@ -38,16 +37,13 @@
       </div>
       <div class="conv-list" id="convList"></div>
 
-    <!-- Right Panel: Chat View -->
     <div class="chat-panel" id="chatPanel">
-      <!-- Empty state when no conversation is selected -->
       <div class="chat-placeholder" id="chatPlaceholder">
         <i class="fas fa-comments"></i>
-        <p>Select a conversation<br/>or start a new one</p>
+        <p>Select a conversation or start a new one</p>
       </div>
 
-      <!-- Active chat (hidden by default) -->
-      <div id="activeChat" style="display:none;flex-direction:column;height:100%">
+      <div id="activeChat">
         <div class="chat-header">
           <button class="back-btn" id="backBtn" title="Back to conversations"><i class="fas fa-arrow-left"></i></button>
           <div class="chat-avatar" id="chatAvatar">U</div>
@@ -66,7 +62,6 @@
         </div>
     </div>
 
-  <!-- New Chat Modal -->
   <div class="modal-overlay" id="newChatModal">
     <div class="modal-box">
       <h3>New Conversation</h3>
