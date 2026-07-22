@@ -27,8 +27,8 @@ export default async function handler(req, res) {
   const user = authUser(req);
   if (!user) return res.status(401).json({ error: 'unauthorized' });
 
-  // The conversation ID is passed as a query parameter: convId
-  const convId = String(req.query.convId || req.body?.convId || '').trim();
+  // The conversation ID comes from the dynamic route parameter [id].js -> req.query.id
+  const convId = String(req.query.id || req.body?.convId || '').trim();
   if (!convId) return res.status(400).json({ error: 'convId required' });
 
   const redis = new Redis({
