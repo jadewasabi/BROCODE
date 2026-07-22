@@ -1,7 +1,6 @@
 const API_BASE = 'https://bro-codie.vercel.app';
 const tokenKey = 'aid4_token';
 
-// ======== Auth helpers (same as timeline.js) ========
 function getToken() {
   return localStorage.getItem(tokenKey) || '';
 }
@@ -84,7 +83,7 @@ let currentConvId = null;
 let currentConvUser = null;
 let messagesCache = {};
 let pollingInterval = null;
-const POLL_INTERVAL = 3000; // 3 seconds
+const POLL_INTERVAL = 3000;
 
 // ======== DOM refs ========
 const convListEl = document.getElementById('convList');
@@ -139,17 +138,16 @@ function renderConversations() {
     const initial = c.withUser.charAt(0).toUpperCase();
     const isActive = c.conversationId === currentConvId;
 
-    return `
-      <div class="conv-item ${isActive ? 'active' : ''}" data-convid="${c.conversationId}" data-user="${c.withUser}">
-        <div class="conv-avatar">${initial}</div>
-        <div class="conv-info">
-          <div class="conv-name">${escapeHtml(c.withUser)}</div>
-          <div class="conv-preview">${escapeHtml(preview)}</div>
-        <div class="conv-time">${lastMsg ? fmtTime(lastMsg.createdAt) : ''}</div>
-    `;
+    return '<div class="conv-item ' + (isActive ? 'active' : '') + '" data-convid="' + c.conversationId + '" data-user="' + c.withUser + '">' +
+      '<div class="conv-avatar">' + initial + '</div>' +
+      '<div class="conv-info">' +
+        '<div class="conv-name">' + escapeHtml(c.withUser) + '</div>' +
+        '<div class="conv-preview">' + escapeHtml(preview) + '</div>' +
+      '</div>' +
+      '<div class="conv-time">' + (lastMsg ? fmtTime(lastMsg.createdAt) : '') + '</div>' +
+    '</div>';
   }).join('');
 
-  // Click handler for conversation items
   convListEl.querySelectorAll('.conv-item').forEach(el => {
     el.addEventListener('click', () => {
       const convId = el.getAttribute('data-convid');
@@ -166,30 +164,23 @@ async function openConversation(convId, withUser) {
   currentConvId = convId;
   currentConvUser = withUser;
 
-  // Update sidebar highlight
   document.querySelectorAll('.conv-item').forEach(el => el.classList.remove('active'));
   const activeItem = document.querySelector(`.conv-item[data-convid="${convId}"]`);
   if (activeItem) activeItem.classList.add('active');
 
-  // Switch to chat panel on mobile
   if (window.innerWidth <= 860) {
     convSidebar.classList.add('hide');
     document.getElementById('chatPanel').classList.add('show');
   }
 
-  // Update chat header
   chatUserName.textContent = withUser;
   chatAvatar.textContent = withUser.charAt(0).toUpperCase();
   chatUserStatus.textContent = 'Online';
 
-  // Show active chat, hide placeholder
   chatPlaceholder.style.display = 'none';
   activeChat.style.display = 'flex';
 
-  // Load messages
   await loadMessages(convId);
-
-  // Start polling
   startPolling(convId);
 }
 
@@ -197,8 +188,6 @@ async function loadMessages(convId) {
   try {
     const data = await api(`/api/messages/${encodeURIComponent(convId)}?limit=100`);
     const msgs = Array.isArray(data.messages) ? data.messages : [];
-
-    // Store in cache (reverse to show oldest first)
     messagesCache[convId] = msgs.reverse();
     renderMessages(convId);
   } catch (e) {
@@ -211,7 +200,7 @@ function renderMessages(convId) {
   const currentUser = parseJwt(getToken()).sub;
 
   if (msgs.length === 0) {
-    messagesArea.innerHTML = '<div class="chat-placeholder" style="flex:1;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.25);font-size:0.9rem;">Send a message to start the conversation</div>';
+    messagesArea.innerHTML = '<div class="no-messages-placeholder" style="flex:1;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.25);font-size:0.9rem;">Send a message to start the conversation</div>';
     return;
   }
 
@@ -221,7 +210,7 @@ function renderMessages(convId) {
   for (const msg of msgs) {
     const msgDate = fmtDateSeparator(msg.createdAt);
     if (msgDate !== lastDate) {
-      html += `<div class="date-separator">${msgDate}</div>`;
+      html += '<div class="date-separator">' + msgDate + '</div>';
       lastDate = msgDate;
     }
 
@@ -229,27 +218,23 @@ function renderMessages(convId) {
     const rowClass = isSent ? 'sent' : 'received';
 
     if (msg.unsent) {
-      html += `
-        <div class="message-row ${rowClass}">
-          <div class="message-unsent">${isSent ? 'You unsent a message' : 'Message was unsent'}</div>
-      `;
+      html += '<div class="message-row ' + rowClass + '">' +
+        '<div class="message-unsent">' + (isSent ? 'You unsent a message' : 'Message was unsent') + '</div>' +
+      '</div>';
     } else {
-      html += `
-        <div class="message-row ${rowClass}">
-          <div class="message-bubble">
-            ${escapeHtml(msg.text)}
-            <div class="message-time">${fmtTime(msg.createdAt)}</div>
-            ${isSent ? `<button class="unsend-btn" data-msgid="${msg.id}" title="Unsend message"><i class="fas fa-times"></i></button>` : ''}
-          </div>
-      `;
+      html += '<div class="message-row ' + rowClass + '">' +
+        '<div class="message-bubble">' +
+          escapeHtml(msg.text) +
+          '<div class="message-time">' + fmtTime(msg.createdAt) + '</div>' +
+          (isSent ? '<button class="unsend-btn" data-msgid="' + msg.id + '" title="Unsend message"><i class="fas fa-times"></i></button>' : '') +
+        '</div>' +
+      '</div>';
     }
   }
 
   messagesArea.innerHTML = html;
-  // Scroll to bottom
   messagesArea.scrollTop = messagesArea.scrollHeight;
 
-  // Attach unsend handlers
   messagesArea.querySelectorAll('.unsend-btn').forEach(btn => {
     btn.addEventListener('click', async (e) => {
       e.stopPropagation();
@@ -272,7 +257,6 @@ function startPolling(convId) {
       if (msgs.length !== currentLen) {
         messagesCache[convId] = msgs;
         renderMessages(convId);
-        // Also update conversation preview
         loadConversations();
       }
     } catch {}
@@ -280,14 +264,13 @@ function startPolling(convId) {
 }
 
 // ======== Send Message ========
-async function handleSendMessage(e) {
+chatForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   const text = (msgInput.value || '').trim();
   if (!text || !currentConvUser) return;
 
   const currentUser = parseJwt(getToken()).sub;
 
-  // Optimistic: add message to cache immediately
   const optimisticMsg = {
     id: 'pending',
     from: currentUser,
@@ -305,35 +288,25 @@ async function handleSendMessage(e) {
   msgInput.value = '';
 
   try {
-    const data = await api('/api/messages', {
-      method: 'POST',
-      body: { to: currentConvUser, text },
-    });
-
+    const data = await api('/api/messages', { method: 'POST', body: { to: currentConvUser, text } });
     if (data && data.message) {
-      // Replace optimistic message with real one
       const cache = messagesCache[currentConvId] || [];
       const idx = cache.findIndex(m => m.id === 'pending');
       if (idx !== -1) cache[idx] = data.message;
       renderMessages(currentConvId);
     }
-
-    // Refresh conversation list to update preview
     loadConversations();
   } catch (e) {
-    // Remove optimistic message on failure
     const cache = messagesCache[currentConvId] || [];
     messagesCache[currentConvId] = cache.filter(m => m.id !== 'pending');
     renderMessages(currentConvId);
-    alert('Failed to send message: ' + e.message);
   }
-}
+});
 
 // ======== Unsend Message ========
 async function unsendMessage(msgId) {
   if (!confirm('Unsend this message?')) return;
 
-  // Optimistic: mark as unsent in cache
   const cache = messagesCache[currentConvId] || [];
   const msg = cache.find(m => m.id === msgId);
   if (msg) {
@@ -343,13 +316,9 @@ async function unsendMessage(msgId) {
   }
 
   try {
-    await api(`/api/messages/${encodeURIComponent(currentConvId)}`, {
-      method: 'DELETE',
-      body: { msgId },
-    });
+    await api(`/api/messages/${encodeURIComponent(currentConvId)}`, { method: 'DELETE', body: { msgId } });
     loadConversations();
   } catch {
-    // Reload on failure
     loadMessages(currentConvId);
   }
 }
@@ -374,7 +343,6 @@ modalStart.addEventListener('click', async () => {
     return;
   }
 
-  // Check if conversation already exists
   const existing = conversations.find(c => c.withUser === username);
   if (existing) {
     newChatModal.classList.remove('open');
@@ -382,27 +350,25 @@ modalStart.addEventListener('click', async () => {
     return;
   }
 
-  // Send a first message to create conversation
   try {
-    const data = await api('/api/messages', {
-      method: 'POST',
-      body: { to: username, text: '👋 Hello!' },
-    });
-
+    const data = await api('/api/messages', { method: 'POST', body: { to: username, text: 'Hello!' } });
     if (data && data.ok) {
       newChatModal.classList.remove('open');
       await loadConversations();
-      // Find the new conversation and open it
       const newConv = conversations.find(c => c.withUser === username);
       if (newConv) openConversation(newConv.conversationId, newConv.withUser);
     }
   } catch (e) {
-    newChatError.textContent = e.message || 'Failed to start conversation';
+    const errMsg = e.message || 'Failed to start conversation';
+    if (errMsg.toLowerCase().includes('not found') || errMsg.toLowerCase().includes('user')) {
+      newChatError.textContent = 'User not found. Please check the username.';
+    } else {
+      newChatError.textContent = errMsg;
+    }
     newChatError.style.display = 'block';
   }
 });
 
-// Enter key in modal
 newChatUser.addEventListener('keydown', (e) => {
   if (e.key === 'Enter') modalStart.click();
 });
@@ -426,16 +392,53 @@ function handleLogout() {
   window.location.href = 'join.html';
 }
 
-// Add logout button to sidebar header
-document.querySelector('.sidebar-header').insertAdjacentHTML('beforeend', `
-  <button class="new-chat-btn" id="logoutBtnMsg" title="Logout" style="background:rgba(239,68,68,0.15);border-color:rgba(239,68,68,0.3);color:#ef4444;margin-left:auto;">
-    <i class="fas fa-sign-out-alt"></i>
-  </button>
-`);
+document.querySelector('.sidebar-header').insertAdjacentHTML('beforeend',
+  '<button class="new-chat-btn" id="logoutBtnMsg" title="Logout" style="background:rgba(239,68,68,0.15);border-color:rgba(239,68,68,0.3);color:#ef4444;margin-left:auto;">' +
+    '<i class="fas fa-sign-out-alt"></i>' +
+  '</button>'
+);
 document.getElementById('logoutBtnMsg').addEventListener('click', handleLogout);
+
+// ======== Start conversation with a specific user (from ?user=xxx) ========
+async function startConversationWithUser(username) {
+  if (!username) return;
+
+  const existing = conversations.find(c => c.withUser === username);
+  if (existing) {
+    openConversation(existing.conversationId, existing.withUser);
+    return;
+  }
+
+  try {
+    const data = await api('/api/messages', { method: 'POST', body: { to: username, text: 'Hello!' } });
+    if (data && data.ok) {
+      await loadConversations();
+      const newConv = conversations.find(c => c.withUser === username);
+      if (newConv) {
+        openConversation(newConv.conversationId, newConv.withUser);
+      } else {
+        chatUserName.textContent = username;
+        chatAvatar.textContent = username.charAt(0).toUpperCase();
+        chatUserStatus.textContent = 'Online';
+        chatPlaceholder.style.display = 'none';
+        activeChat.style.display = 'flex';
+        currentConvUser = username;
+        currentConvId = 'temp:' + username;
+      }
+    }
+  } catch (e) {
+    alert('Could not start conversation: ' + e.message);
+  }
+}
 
 // ======== Init ========
 window.addEventListener('DOMContentLoaded', async () => {
   requireAuth();
   await loadConversations();
+
+  const params = new URLSearchParams(window.location.search);
+  const targetUser = params.get('user');
+  if (targetUser) {
+    startConversationWithUser(targetUser);
+  }
 });
