@@ -1,4 +1,4 @@
-const API_BASE = 'https://bro-codie.vercel.app';
+const API_BASE = 'https://aid-4-prog.vercel.app';
 
 const tokenKey = 'aid4_token';
 
@@ -162,6 +162,21 @@ function renderComments(commentListEl, comments) {
     .join('');
 }
 
+// ======== Two-Tier Sort: Upvoted always above regular ========
+function sortPosts() {
+  allPosts.sort((a, b) => {
+    // isUpvoted=true from server OR upvotedAt set locally
+    const aUp = a.isUpvoted || a.upvotedAt;
+    const bUp = b.isUpvoted || b.upvotedAt;
+    if (aUp && !bUp) return -1;
+    if (!aUp && bUp) return 1;
+    // Both upvoted: sort by upvote time (newest first)
+    if (aUp && bUp) return (b.upvotedAt || 0) - (a.upvotedAt || 0);
+    // Neither upvoted: sort by creation time (newest first)
+    return (b.createdAt || 0) - (a.createdAt || 0);
+  });
+}
+
 // ======== Render Posts ========
 function renderPosts(filtered) {
   const postsEl = document.getElementById('posts');
@@ -233,6 +248,9 @@ function renderPosts(filtered) {
 }
 
 function applySearchAndRender() {
+  // Always enforce two-tier sort before rendering
+  sortPosts();
+  
   const q = (document.getElementById('search').value || '').trim().toLowerCase();
   if (!q) return renderPosts(allPosts);
 
