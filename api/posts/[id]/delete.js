@@ -46,6 +46,8 @@ export default async function handler(req, res) {
   // Delete the post data, remove from index sets, and clean up reaction sets
   await redis.del(`post:${id}`);
   await redis.srem('posts:id', id);
+  await redis.zrem('posts:bytime', id);
+  await redis.del(`post:comments:${id}`);
   await redis.del(`post:${id}:react:like`);
   await redis.del(`post:${id}:react:love`);
   await redis.del(`post:${id}:react:upvote`);
