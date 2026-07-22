@@ -43,14 +43,16 @@ export default async function handler(req, res) {
   const post = typeof raw === 'string' ? JSON.parse(raw) : raw;
 
   // Per-user toggles using sets
-  // Handle upvote: bump post to top of timeline using Sorted Set score update
+  // Handle upvote: bump post to top of timeline using TWO-TIER ranking
   if (r === 'upvote') {
     const now = Math.floor(Date.now() / 1000);
-    // Update post's createdAt for reference
-    post.createdAt = now;
+    // Mark post as upvoted and store the upvote timestamp
+    post.upvotedAt = now;
     await redis.set(`post:${id}`, JSON.stringify(post));
-    // Use ZADD to update score in sorted set — O(log N) instead of rewriting full post
-    await redis.zadd('posts:bytime', { score: now, member: post.id });
+    // Add to the upvoted sorted set — these posts always appear FIRST
+    await redis.zadd('posts:upvoted', { score: now, member: post.id });
+    // Also remove from regular timeline so it doesn't appear twice
+    await redis.zrem('posts:bytime', post.id);
     return res.status(200).json({ ok: true, post });
   }
 
