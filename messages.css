@@ -223,9 +223,10 @@ body{
 
 #activeChat{
   flex:1;
-  display:flex;
+  display:none;
   flex-direction:column;
   min-height:0;
+  overflow:hidden;
 }
 
 .chat-conversation-box{
@@ -233,8 +234,8 @@ body{
   display:flex;
   flex-direction:column;
   min-height:0;
+  overflow:hidden;
   margin:0;
-  border-bottom:1px solid rgba(255,255,255,0.08);
 }
 
 .messages-area{
@@ -244,6 +245,7 @@ body{
   display:flex;
   flex-direction:column;
   gap:6px;
+  min-height:0;
 }
 .messages-area::-webkit-scrollbar{width:4px}
 .messages-area::-webkit-scrollbar-thumb{background:rgba(71,178,228,0.3);border-radius:4px}
