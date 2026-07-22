@@ -76,7 +76,7 @@ function parseJwt(token) {
 // ======== In-Memory Cache ========
 let allPosts = [];
 let postsCache = { ids: [], timestamp: 0 };
-const CACHE_TTL = 5000; // 5 seconds before refresh
+const CACHE_TTL = 5000;
 let pendingCommentFetches = {};
 
 // ======== Debounce Utility ========
@@ -93,15 +93,12 @@ async function loadPosts(forceRefresh = false) {
   const now = Date.now();
   const cached = postsCache;
 
-  // Stale-while-revalidate: show cached data if fresh, refresh in background
   if (!forceRefresh && cached.ids.length > 0 && now - cached.timestamp < CACHE_TTL) {
     return applySearchAndRender();
   }
 
-  // Refresh in background even if cache is slightly stale
   if (!forceRefresh && cached.ids.length > 0 && now - cached.timestamp < CACHE_TTL * 2) {
-    applySearchAndRender(); // show current cache
-    // Refresh in background
+    applySearchAndRender();
     fetchAndUpdatePosts();
     return;
   }
@@ -132,11 +129,9 @@ async function loadCommentsForPost(postId, commentListEl) {
     const data = await api(`/api/posts/${encodeURIComponent(postId)}/comment?limit=10`);
     const comments = Array.isArray(data.comments) ? data.comments : [];
 
-    // Update local cache
     const post = allPosts.find(p => String(p.id) === String(postId));
     if (post) post._comments = comments;
 
-    // Render comments into the list element
     renderComments(commentListEl, comments);
   } catch (e) {
     console.warn('Failed to load comments:', e);
@@ -162,17 +157,13 @@ function renderComments(commentListEl, comments) {
     .join('');
 }
 
-// ======== Two-Tier Sort: Upvoted always above regular ========
 function sortPosts() {
   allPosts.sort((a, b) => {
-    // isUpvoted=true from server OR upvotedAt set locally
     const aUp = a.isUpvoted || a.upvotedAt;
     const bUp = b.isUpvoted || b.upvotedAt;
     if (aUp && !bUp) return -1;
     if (!aUp && bUp) return 1;
-    // Both upvoted: sort by upvote time (newest first)
     if (aUp && bUp) return (b.upvotedAt || 0) - (a.upvotedAt || 0);
-    // Neither upvoted: sort by creation time (newest first)
     return (b.createdAt || 0) - (a.createdAt || 0);
   });
 }
@@ -201,30 +192,30 @@ function renderPosts(filtered) {
         <div>
           <div class="post-user">${escapeHtml(p.username)}</div>
           <div class="post-meta">${escapeHtml(fmtTime(p.createdAt))}</div>
-        </div>
         <div class="post-meta" style="display:flex;gap:8px;align-items:center;">
           <span>#${escapeHtml(String(p.id))}</span>
           ${isOwner ? `<button class="btn delete-btn" data-delete="${p.id}" title="Delete your post">🗑️ Delete</button>` : ''}
         </div>
-      </div>
 
       ${p.imageUrl ? `<div class="post-img"><img src="${escapeHtml(p.imageUrl)}" alt="post image" /></div>` : ''}
 
       ${p.text ? `<div class="post-content">${escapeHtml(p.text)}</div>` : ''}
 
-      <div class="actions">
+      <div class="actions" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
         <button class="btn react-btn upvote-btn" data-react="upvote" data-postid="${p.id}" title="Upvote to push to top">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="18 15 12 9 6 15"></polyline>
           </svg>
           Upvote
         </button>
+        ${p.username !== currentUser ? `<button class="btn msg-user-btn" data-msguser="${p.username}" title="Message ${escapeHtml(p.username)}">
+          <i class="fas fa-comment"></i> Message
+        </button>` : ''}
       </div>
 
       <div class="comment-box">
         <div class="comment-list" data-commentlist="${p.id}">
           <div class="small">Loading comments... ${commentCount > 0 ? `(${commentCount} total)` : ''}</div>
-        </div>
         <form class="comment-form" data-commentform="${p.id}">
           <input type="text" required maxlength="300" placeholder="Write a comment..." />
           <button class="btn" type="submit">Comment</button>
@@ -234,10 +225,8 @@ function renderPosts(filtered) {
 
     postsEl.appendChild(el);
 
-    // Lazy load comments
     const commentListEl = el.querySelector(`[data-commentlist="${p.id}"]`);
     if (commentListEl) {
-      // If we already have cached comments, show them immediately
       if (p._comments) {
         renderComments(commentListEl, p._comments);
       } else {
@@ -248,9 +237,8 @@ function renderPosts(filtered) {
 }
 
 function applySearchAndRender() {
-  // Always enforce two-tier sort before rendering
   sortPosts();
-  
+
   const q = (document.getElementById('search').value || '').trim().toLowerCase();
   if (!q) return renderPosts(allPosts);
 
@@ -264,10 +252,8 @@ function applySearchAndRender() {
   renderPosts(filtered);
 }
 
-// Debounced search
 const debouncedSearch = debounce(applySearchAndRender, 200);
 
-// ======== Optimistic Update Helpers ========
 function updatePostInCache(postId, updater) {
   const idx = allPosts.findIndex(p => String(p.id) === String(postId));
   if (idx === -1) return null;
@@ -306,7 +292,6 @@ async function handleCreatePost(e) {
     return;
   }
 
-  // Optimistic: add post immediately before server responds
   const optimisticPost = {
     id: '...',
     username: parseJwt(getToken()).sub,
@@ -326,7 +311,6 @@ async function handleCreatePost(e) {
     if (fileInput) fileInput.value = '';
     document.getElementById('postError').style.display = 'none';
 
-    // Replace optimistic post with real one
     if (data && data.post) {
       const idx = allPosts.findIndex(p => p.id === '...');
       if (idx !== -1) {
@@ -337,7 +321,6 @@ async function handleCreatePost(e) {
     }
     applySearchAndRender();
   } catch (e) {
-    // Remove optimistic post on failure
     allPosts = allPosts.filter(p => p.id !== '...');
     applySearchAndRender();
     const err = document.getElementById('postError');
@@ -356,7 +339,6 @@ async function handleCommentSubmit(e) {
 
   const currentUser = parseJwt(getToken()).sub;
 
-  // Optimistic: add comment to cache immediately
   const optimisticComment = { username: currentUser, text, createdAt: Math.floor(Date.now() / 1000) };
   const post = updatePostInCache(postId, p => {
     const comments = p._comments || [];
@@ -365,7 +347,6 @@ async function handleCommentSubmit(e) {
     return p;
   });
 
-  // Update UI immediately
   const commentListEl = document.querySelector(`[data-commentlist="${postId}"]`);
   if (commentListEl && post) renderComments(commentListEl, post._comments);
 
@@ -377,7 +358,6 @@ async function handleCommentSubmit(e) {
       body: { text },
     });
   } catch (e) {
-    // Rollback on failure
     updatePostInCache(postId, p => {
       p._comments = (p._comments || []).filter(c => c !== optimisticComment);
       p.commentCount = Math.max(0, (p.commentCount || 1) - 1);
@@ -394,9 +374,8 @@ async function handleReactClick(e) {
   const postId = btn.getAttribute('data-postid');
   const type = btn.getAttribute('data-react');
 
-  if (type !== 'upvote') return; // only upvote supported in UI
+  if (type !== 'upvote') return;
 
-  // Optimistic: mark as upvoted and bump to top tier immediately
   const post = updatePostInCache(postId, p => {
     p.isUpvoted = true;
     p.upvotedAt = Math.floor(Date.now() / 1000);
@@ -404,13 +383,7 @@ async function handleReactClick(e) {
   });
 
   if (post) {
-    // Two-tier sort: upvoted posts first (by upvote time), then regular (by creation time)
-    allPosts.sort((a, b) => {
-      if (a.isUpvoted && !b.isUpvoted) return -1;
-      if (!a.isUpvoted && b.isUpvoted) return 1;
-      if (a.isUpvoted && b.isUpvoted) return (b.upvotedAt || 0) - (a.upvotedAt || 0);
-      return (b.createdAt || 0) - (a.createdAt || 0);
-    });
+    sortPosts();
     applySearchAndRender();
   }
 
@@ -419,10 +392,8 @@ async function handleReactClick(e) {
       method: 'POST',
       body: { reaction: type },
     });
-    // Silently refresh in background
     setTimeout(() => loadPosts(true), 2000);
   } catch {
-    // Revert on failure
     await loadPosts(true);
   }
 }
@@ -434,15 +405,21 @@ async function handleDeleteClick(e) {
   const postId = btn.getAttribute('data-delete');
   if (!confirm('Are you sure you want to delete this post?')) return;
 
-  // Optimistic: remove from UI
   allPosts = allPosts.filter(p => String(p.id) !== String(postId));
   applySearchAndRender();
 
   try {
     await api(`/api/posts/${encodeURIComponent(postId)}/delete`, { method: 'DELETE' });
   } catch {
-    await loadPosts(true); // reload on failure
+    await loadPosts(true);
   }
+}
+
+function handleMsgUserClick(e) {
+  const btn = e.target.closest('[data-msguser]');
+  if (!btn) return;
+  const username = btn.getAttribute('data-msguser');
+  window.location.href = `messages.html?user=${encodeURIComponent(username)}`;
 }
 
 function handleLogout() {
@@ -455,10 +432,14 @@ window.addEventListener('DOMContentLoaded', async () => {
 
   document.getElementById('postForm').addEventListener('submit', handleCreatePost);
   document.getElementById('logoutBtn').addEventListener('click', handleLogout);
+  document.getElementById('messagesBtn').addEventListener('click', () => {
+    window.location.href = 'messages.html';
+  });
   document.getElementById('search').addEventListener('input', debouncedSearch);
   document.getElementById('posts').addEventListener('submit', handleCommentSubmit);
   document.getElementById('posts').addEventListener('click', handleReactClick);
   document.getElementById('posts').addEventListener('click', handleDeleteClick);
+  document.getElementById('posts').addEventListener('click', handleMsgUserClick);
 
   await loadPosts();
 });
