@@ -37,6 +37,7 @@
         <input type="text" id="convSearch" placeholder="Search conversations..." />
       </div>
       <div class="conv-list" id="convList"></div>
+    </div>
 
     <!-- Right chat panel -->
     <div class="chat-panel" id="chatPanel">
@@ -46,22 +47,26 @@
       </div>
 
       <div id="activeChat">
-        <div class="chat-conversation-box">
-          <div class="chat-header">
-            <button class="back-btn" id="backBtn"><i class="fas fa-arrow-left"></i></button>
-            <div class="chat-avatar" id="chatAvatar">U</div>
-            <div class="chat-user-info">
-              <div class="chat-user-name" id="chatUserName">User</div>
-              <div class="chat-user-status" id="chatUserStatus">Online</div>
+        <div class="chat-header">
+          <button class="back-btn" id="backBtn"><i class="fas fa-arrow-left"></i></button>
+          <div class="chat-avatar" id="chatAvatar">U</div>
+          <div class="chat-user-info">
+            <div class="chat-user-name" id="chatUserName">User</div>
+            <div class="chat-user-status" id="chatUserStatus">Online</div>
           </div>
+        </div>
+        <div class="chat-conversation-box">
           <div class="messages-area" id="messagesArea"></div>
+        </div>
         <div class="chat-input-area">
           <form class="chat-input-form" id="chatForm">
             <input type="text" id="msgInput" placeholder="Type a message..." autocomplete="off" required maxlength="2000" />
             <button class="send-btn" type="submit"><i class="fas fa-paper-plane"></i></button>
           </form>
         </div>
+      </div>
     </div>
+  </div>
 
   <div class="modal-overlay" id="newChatModal">
     <div class="modal-box">
