@@ -77,7 +77,6 @@ async function api(path, { method = 'GET', body } = {}) {
   return res.json().catch(() => ({}));
 }
 
-// ======== State ========
 let conversations = [];
 let currentConvId = null;
 let currentConvUser = null;
@@ -85,7 +84,6 @@ let messagesCache = {};
 let pollingInterval = null;
 const POLL_INTERVAL = 3000;
 
-// ======== DOM refs ========
 const convListEl = document.getElementById('convList');
 const convSearchEl = document.getElementById('convSearch');
 const chatPlaceholder = document.getElementById('chatPlaceholder');
@@ -105,7 +103,6 @@ const modalCancel = document.getElementById('modalCancel');
 const modalStart = document.getElementById('modalStart');
 const convSidebar = document.getElementById('convSidebar');
 
-// ======== Load Conversations ========
 async function loadConversations() {
   try {
     const data = await api('/api/messages');
@@ -149,7 +146,7 @@ function renderConversations() {
   }).join('');
 
   convListEl.querySelectorAll('.conv-item').forEach(el => {
-    el.addEventListener('click', () => {
+    el.addEventListener('click', function() {
       const convId = el.getAttribute('data-convid');
       const user = el.getAttribute('data-user');
       openConversation(convId, user);
@@ -157,7 +154,6 @@ function renderConversations() {
   });
 }
 
-// ======== Open a Conversation ========
 async function openConversation(convId, withUser) {
   if (currentConvId === convId) return;
 
@@ -165,7 +161,7 @@ async function openConversation(convId, withUser) {
   currentConvUser = withUser;
 
   document.querySelectorAll('.conv-item').forEach(el => el.classList.remove('active'));
-  const activeItem = document.querySelector(`.conv-item[data-convid="${convId}"]`);
+  const activeItem = document.querySelector('[data-convid="' + convId + '"]');
   if (activeItem) activeItem.classList.add('active');
 
   if (window.innerWidth <= 860) {
@@ -186,7 +182,7 @@ async function openConversation(convId, withUser) {
 
 async function loadMessages(convId) {
   try {
-    const data = await api(`/api/messages/${encodeURIComponent(convId)}?limit=100`);
+    const data = await api('/api/messages/' + encodeURIComponent(convId) + '?limit=100');
     const msgs = Array.isArray(data.messages) ? data.messages : [];
     messagesCache[convId] = msgs.reverse();
     renderMessages(convId);
@@ -200,14 +196,15 @@ function renderMessages(convId) {
   const currentUser = parseJwt(getToken()).sub;
 
   if (msgs.length === 0) {
-    messagesArea.innerHTML = '<div class="no-messages-placeholder" style="flex:1;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.25);font-size:0.9rem;">Send a message to start the conversation</div>';
+    messagesArea.innerHTML = '<div class="no-msgs-placeholder" style="flex:1;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.25);font-size:0.9rem;">Send a message to start the conversation</div>';
     return;
   }
 
   let html = '';
   let lastDate = null;
 
-  for (const msg of msgs) {
+  for (let i = 0; i < msgs.length; i++) {
+    const msg = msgs[i];
     const msgDate = fmtDateSeparator(msg.createdAt);
     if (msgDate !== lastDate) {
       html += '<div class="date-separator">' + msgDate + '</div>';
@@ -235,22 +232,21 @@ function renderMessages(convId) {
   messagesArea.innerHTML = html;
   messagesArea.scrollTop = messagesArea.scrollHeight;
 
-  messagesArea.querySelectorAll('.unsend-btn').forEach(btn => {
-    btn.addEventListener('click', async (e) => {
+  messagesArea.querySelectorAll('.unsend-btn').forEach(function(btn) {
+    btn.addEventListener('click', function(e) {
       e.stopPropagation();
       const msgId = btn.getAttribute('data-msgid');
-      await unsendMessage(msgId);
+      unsendMessage(msgId);
     });
   });
 }
 
-// ======== Poll for New Messages ========
 function startPolling(convId) {
   if (pollingInterval) clearInterval(pollingInterval);
-  pollingInterval = setInterval(async () => {
+  pollingInterval = setInterval(async function() {
     if (!currentConvId || currentConvId !== convId) return;
     try {
-      const data = await api(`/api/messages/${encodeURIComponent(convId)}?limit=100`);
+      const data = await api('/api/messages/' + encodeURIComponent(convId) + '?limit=100');
       const msgs = Array.isArray(data.messages) ? data.messages.reverse() : [];
       const currentLen = (messagesCache[convId] || []).length;
 
@@ -259,12 +255,11 @@ function startPolling(convId) {
         renderMessages(convId);
         loadConversations();
       }
-    } catch {}
+    } catch (e) {}
   }, POLL_INTERVAL);
 }
 
-// ======== Send Message ========
-chatForm.addEventListener('submit', async (e) => {
+chatForm.addEventListener('submit', async function(e) {
   e.preventDefault();
   const text = (msgInput.value || '').trim();
   if (!text || !currentConvUser) return;
@@ -288,27 +283,26 @@ chatForm.addEventListener('submit', async (e) => {
   msgInput.value = '';
 
   try {
-    const data = await api('/api/messages', { method: 'POST', body: { to: currentConvUser, text } });
+    const data = await api('/api/messages', { method: 'POST', body: { to: currentConvUser, text: text } });
     if (data && data.message) {
       const cache = messagesCache[currentConvId] || [];
-      const idx = cache.findIndex(m => m.id === 'pending');
+      const idx = cache.findIndex(function(m) { return m.id === 'pending'; });
       if (idx !== -1) cache[idx] = data.message;
       renderMessages(currentConvId);
     }
     loadConversations();
   } catch (e) {
     const cache = messagesCache[currentConvId] || [];
-    messagesCache[currentConvId] = cache.filter(m => m.id !== 'pending');
+    messagesCache[currentConvId] = cache.filter(function(m) { return m.id !== 'pending'; });
     renderMessages(currentConvId);
   }
 });
 
-// ======== Unsend Message ========
 async function unsendMessage(msgId) {
   if (!confirm('Unsend this message?')) return;
 
   const cache = messagesCache[currentConvId] || [];
-  const msg = cache.find(m => m.id === msgId);
+  const msg = cache.find(function(m) { return m.id === msgId; });
   if (msg) {
     msg.unsent = true;
     delete msg.text;
@@ -316,26 +310,25 @@ async function unsendMessage(msgId) {
   }
 
   try {
-    await api(`/api/messages/${encodeURIComponent(currentConvId)}`, { method: 'DELETE', body: { msgId } });
+    await api('/api/messages/' + encodeURIComponent(currentConvId), { method: 'DELETE', body: { msgId: msgId } });
     loadConversations();
-  } catch {
+  } catch (e) {
     loadMessages(currentConvId);
   }
 }
 
-// ======== New Chat Modal ========
-newChatBtn.addEventListener('click', () => {
+newChatBtn.addEventListener('click', function() {
   newChatModal.classList.add('open');
   newChatUser.value = '';
   newChatError.style.display = 'none';
   newChatUser.focus();
 });
 
-modalCancel.addEventListener('click', () => {
+modalCancel.addEventListener('click', function() {
   newChatModal.classList.remove('open');
 });
 
-modalStart.addEventListener('click', async () => {
+modalStart.addEventListener('click', async function() {
   const username = (newChatUser.value || '').trim();
   if (!username) {
     newChatError.textContent = 'Please enter a username';
@@ -343,7 +336,7 @@ modalStart.addEventListener('click', async () => {
     return;
   }
 
-  const existing = conversations.find(c => c.withUser === username);
+  const existing = conversations.find(function(c) { return c.withUser === username; });
   if (existing) {
     newChatModal.classList.remove('open');
     openConversation(existing.conversationId, existing.withUser);
@@ -355,7 +348,7 @@ modalStart.addEventListener('click', async () => {
     if (data && data.ok) {
       newChatModal.classList.remove('open');
       await loadConversations();
-      const newConv = conversations.find(c => c.withUser === username);
+      const newConv = conversations.find(function(c) { return c.withUser === username; });
       if (newConv) openConversation(newConv.conversationId, newConv.withUser);
     }
   } catch (e) {
@@ -369,12 +362,11 @@ modalStart.addEventListener('click', async () => {
   }
 });
 
-newChatUser.addEventListener('keydown', (e) => {
+newChatUser.addEventListener('keydown', function(e) {
   if (e.key === 'Enter') modalStart.click();
 });
 
-// ======== Back button (mobile) ========
-backBtn.addEventListener('click', () => {
+backBtn.addEventListener('click', function() {
   convSidebar.classList.remove('hide');
   document.getElementById('chatPanel').classList.remove('show');
   if (pollingInterval) clearInterval(pollingInterval);
@@ -382,10 +374,8 @@ backBtn.addEventListener('click', () => {
   currentConvUser = null;
 });
 
-// ======== Search ========
-convSearchEl.addEventListener('input', () => renderConversations());
+convSearchEl.addEventListener('input', function() { renderConversations(); });
 
-// ======== Logout ========
 function handleLogout() {
   if (pollingInterval) clearInterval(pollingInterval);
   localStorage.removeItem(tokenKey);
@@ -399,11 +389,10 @@ document.querySelector('.sidebar-header').insertAdjacentHTML('beforeend',
 );
 document.getElementById('logoutBtnMsg').addEventListener('click', handleLogout);
 
-// ======== Start conversation with a specific user (from ?user=xxx) ========
 async function startConversationWithUser(username) {
   if (!username) return;
 
-  const existing = conversations.find(c => c.withUser === username);
+  const existing = conversations.find(function(c) { return c.withUser === username; });
   if (existing) {
     openConversation(existing.conversationId, existing.withUser);
     return;
@@ -413,7 +402,7 @@ async function startConversationWithUser(username) {
     const data = await api('/api/messages', { method: 'POST', body: { to: username, text: 'Hello!' } });
     if (data && data.ok) {
       await loadConversations();
-      const newConv = conversations.find(c => c.withUser === username);
+      const newConv = conversations.find(function(c) { return c.withUser === username; });
       if (newConv) {
         openConversation(newConv.conversationId, newConv.withUser);
       } else {
@@ -431,8 +420,7 @@ async function startConversationWithUser(username) {
   }
 }
 
-// ======== Init ========
-window.addEventListener('DOMContentLoaded', async () => {
+window.addEventListener('DOMContentLoaded', async function() {
   requireAuth();
   await loadConversations();
 
