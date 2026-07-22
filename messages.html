@@ -26,6 +26,7 @@
   </header>
 
   <div class="messages-app">
+    <!-- Left sidebar -->
     <div class="conv-sidebar" id="convSidebar">
       <div class="sidebar-header">
         <h2>Messages</h2>
@@ -37,6 +38,7 @@
       </div>
       <div class="conv-list" id="convList"></div>
 
+    <!-- Right chat panel -->
     <div class="chat-panel" id="chatPanel">
       <div class="chat-placeholder" id="chatPlaceholder">
         <i class="fas fa-comments"></i>
@@ -45,15 +47,13 @@
 
       <div id="activeChat">
         <div class="chat-header">
-          <button class="back-btn" id="backBtn" title="Back to conversations"><i class="fas fa-arrow-left"></i></button>
+          <button class="back-btn" id="backBtn"><i class="fas fa-arrow-left"></i></button>
           <div class="chat-avatar" id="chatAvatar">U</div>
-          <div>
+          <div class="chat-user-info">
             <div class="chat-user-name" id="chatUserName">User</div>
             <div class="chat-user-status" id="chatUserStatus">Online</div>
         </div>
-
         <div class="messages-area" id="messagesArea"></div>
-
         <div class="chat-input-area">
           <form class="chat-input-form" id="chatForm">
             <input type="text" id="msgInput" placeholder="Type a message..." autocomplete="off" required maxlength="2000" />
