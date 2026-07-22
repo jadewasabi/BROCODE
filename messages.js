@@ -370,8 +370,11 @@ backBtn.addEventListener('click', function() {
   convSidebar.classList.remove('hide');
   document.getElementById('chatPanel').classList.remove('show');
   if (pollingInterval) clearInterval(pollingInterval);
+  pollingInterval = null;
   currentConvId = null;
   currentConvUser = null;
+  activeChat.style.display = 'none';
+  chatPlaceholder.style.display = 'flex';
 });
 
 convSearchEl.addEventListener('input', function() { renderConversations(); });
