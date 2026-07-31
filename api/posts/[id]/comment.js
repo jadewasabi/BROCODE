@@ -14,7 +14,7 @@ function authUser(req) {
 }
 
 export default async function handler(req, res) {
-  // CORS headers
+
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
@@ -24,7 +24,7 @@ export default async function handler(req, res) {
   const user = authUser(req);
   if (!user) return res.status(401).json({ error: 'unauthorized' });
 
-  // Extract post ID from URL path: /api/posts/{id}/comment
+  
   const id = String(req.query.id || req.body?.postId || '').trim();
   if (!id) return res.status(400).json({ error: 'postId required' });
 
@@ -34,7 +34,7 @@ export default async function handler(req, res) {
   });
 
   if (req.method === 'GET') {
-    // Fetch comments for a post
+
     const commentLimit = Math.min(50, parseInt(req.query.limit) || 10);
     const rawComments = await redis.lrange(`post:comments:${id}`, 0, commentLimit - 1);
     const comments = (rawComments || []).map(c => {
@@ -53,12 +53,11 @@ export default async function handler(req, res) {
   if (!t) return res.status(400).json({ error: 'text required' });
   if (t.length > 300) return res.status(400).json({ error: 'text too long' });
 
-  // Verify post exists
+ 
   const raw = await redis.get(`post:${id}`);
   if (!raw) return res.status(404).json({ error: 'post not found' });
 
-  // Store comment in a Redis List: post:comments:{id}
-  // This avoids rewriting the entire post object on every comment
+
   const comment = { username: user, text: t, createdAt: Math.floor(Date.now() / 1000) };
   await redis.lpush(`post:comments:${id}`, JSON.stringify(comment));
   // Trim to keep only last 50 comments
