@@ -20,7 +20,7 @@ function authUser(req) {
 }
 
 function getConversationId(user1, user2) {
-  // Sort names to ensure consistent key regardless of who initiates
+  // org names
   const sorted = [user1, user2].sort();
   return `conv:${sorted[0]}:${sorted[1]}`;
 }
@@ -38,14 +38,14 @@ export default async function handler(req, res) {
     token: process.env.UPSTASH_REDIS_REST_TOKEN,
   });
 
-  // ======== GET: List conversations for the authenticated user ========
+  // list conv
   if (req.method === 'GET') {
     try {
-      // Get all conversation IDs for this user
+      // save conv
       const rawConvs = await redis.smembers(`user:convs:${user}`);
       const convIds = Array.isArray(rawConvs) ? rawConvs : [];
 
-      // Fetch preview data (last message) for each conversation in parallel
+      // mga na save
       const previews = await Promise.all(
         convIds.map(async (convId) => {
           const raw = await redis.lindex(`msgs:${convId}`, 0);
@@ -55,9 +55,9 @@ export default async function handler(req, res) {
             catch { lastMsg = null; }
           }
 
-          // Extract the other user from the conversation key
+          
           const parts = convId.split(':');
-          // conv:user1:user2 → parts[1] = user1, parts[2] = user2
+        
           const otherUser = parts[1] === user ? parts[2] : parts[1];
 
           return {
@@ -69,7 +69,7 @@ export default async function handler(req, res) {
         })
       );
 
-      // Sort by most recent activity first
+      // conv org, huling na chat
       previews.sort((a, b) => (b.lastActivity || 0) - (a.lastActivity || 0));
 
       res.setHeader('Cache-Control', 'no-cache');
@@ -79,7 +79,7 @@ export default async function handler(req, res) {
     }
   }
 
-  // ======== POST: Send a new message (or create conversation) ========
+  // send message
   if (req.method === 'POST') {
     const { to, text } = req.body || {};
     const recipient = String(to || '').trim();
@@ -90,7 +90,7 @@ export default async function handler(req, res) {
     if (messageText.length > 2000) return res.status(400).json({ error: 'text too long' });
     if (recipient === user) return res.status(400).json({ error: 'Cannot message yourself' });
 
-    // Check if recipient exists
+    // check kung nag exxist sinearch
     const recipientExists = await redis.get(`user:${recipient}`);
     if (!recipientExists) return res.status(404).json({ error: 'User not found' });
 
@@ -106,12 +106,12 @@ export default async function handler(req, res) {
       createdAt: now,
     };
 
-    // Store message in the conversation's list
+    // i store conv
     await redis.lpush(`msgs:${convId}`, JSON.stringify(message));
-    // Trim to keep last 200 messages
+    // 200 mess lang pwd
     await redis.ltrim(`msgs:${convId}`, 0, 199);
 
-    // Index this conversation for both users
+    // sa upstash
     await redis.sadd(`user:convs:${user}`, convId);
     await redis.sadd(`user:convs:${recipient}`, convId);
 
