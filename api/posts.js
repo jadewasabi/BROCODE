@@ -36,15 +36,11 @@ export default async function handler(req, res) {
   });
 
   if (req.method === 'GET') {
-    // --- Pagination ---
+    
     const page = Math.max(1, parseInt(req.query.page) || 1);
     const limit = Math.min(50, Math.max(1, parseInt(req.query.limit) || 15));
     const offset = (page - 1) * limit;
 
-    // --- TWO-TIER RANKING ---
-    // Tier 1: Upvoted posts (sorted by upvote time, newest first)
-    // Tier 2: Non-upvoted posts (sorted by creation time, newest first)
-    // Upvoted posts ALWAYS stay above non-upvoted posts
     
     let upvotedIds = [];
     let regularIds = [];
@@ -57,22 +53,22 @@ export default async function handler(req, res) {
       regularIds = await redis.zrevrange('posts:bytime', 0, -1);
     } catch { /* ignore */ }
 
-    // Fallback to old set if sorted sets are empty (migration)
+    
     if (!regularIds || regularIds.length === 0) {
       const setIds = await redis.smembers('posts:id');
       regularIds = (setIds || []).map(String).sort((a, b) => Number(b) - Number(a));
     }
 
-    // Remove upvoted IDs from regular IDs (they appear in Tier 1)
+    // magiging num 1 yung inup vote
     const upvotedSet = new Set(upvotedIds.map(String));
     regularIds = regularIds.filter(id => !upvotedSet.has(String(id)));
 
-    // Combine: upvoted first, then regular
+    
     const allOrderedIds = [...upvotedIds, ...regularIds];
     const total = allOrderedIds.length;
     const pageIds = allOrderedIds.slice(offset, offset + limit);
 
-    // --- Single mget() call instead of N individual redis.get() calls ---
+ 
     const keys = pageIds.map(id => `post:${id}`);
     const rawPosts = keys.length > 0 ? await redis.mget(...keys) : [];
 
@@ -82,7 +78,7 @@ export default async function handler(req, res) {
       if (!raw) continue;
       try {
         const post = typeof raw === 'string' ? JSON.parse(raw) : raw;
-        // Strip embedded comments from response — they load separately now
+        
         const { comments, ...postData } = post;
         const cleaned = { 
           ...postData, 
@@ -93,11 +89,11 @@ export default async function handler(req, res) {
       } catch { /* skip corrupt posts */ }
     }
 
-    // Re-sort to match the combined order
+    
     const postMap = new Map(posts.map(p => [String(p.id), p]));
     const orderedPosts = pageIds.map(id => postMap.get(String(id))).filter(Boolean);
 
-    // --- Cache hint for CDN / browser ---
+    
     res.setHeader('Cache-Control', 'public, max-age=3, s-maxage=10, stale-while-revalidate=30');
 
     return res.status(200).json({
@@ -131,13 +127,13 @@ export default async function handler(req, res) {
       imageUrl: img || null,
       createdAt: now,
       reactions: { likes: 0, loves: 0 },
-      // comments no longer stored inline — use post:comments:{id} list
+      
     };
 
     await redis.set(`post:${postId}`, JSON.stringify(post));
-    // Add to sorted set for fast timeline ordering (score = createdAt)
+   
     await redis.zadd('posts:bytime', { score: now, member: postId });
-    // Keep backward compat with old set
+   
     await redis.sadd('posts:id', postId);
 
     return res.status(201).json({ post });
