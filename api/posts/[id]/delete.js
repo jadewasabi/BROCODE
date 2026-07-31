@@ -14,7 +14,7 @@ function authUser(req) {
 }
 
 export default async function handler(req, res) {
-  // CORS headers
+
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'DELETE,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
@@ -38,12 +38,12 @@ export default async function handler(req, res) {
 
   const post = typeof raw === 'string' ? JSON.parse(raw) : raw;
 
-  // Only the post author can delete
+  // madedelete lang pag user nag del
   if (post.username !== user) {
     return res.status(403).json({ error: 'You can only delete your own posts' });
   }
 
-  // Delete the post data, remove from index sets, and clean up reaction sets
+  // 
   await redis.del(`post:${id}`);
   await redis.srem('posts:id', id);
   await redis.zrem('posts:bytime', id);
