@@ -14,7 +14,7 @@ function authUser(req) {
 }
 
 export default async function handler(req, res) {
-  // CORS headers
+
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
@@ -25,8 +25,7 @@ export default async function handler(req, res) {
   const user = authUser(req);
   if (!user) return res.status(401).json({ error: 'unauthorized' });
 
-  // Extract post ID from URL path: /api/posts/{id}/react
-  // On Vercel, dynamic segments are passed as req.query.id
+ 
   const id = String(req.query.id || req.body?.postId || '').trim();
   const r = String(req.body?.reaction || '').trim();
 
@@ -42,16 +41,15 @@ export default async function handler(req, res) {
   if (!raw) return res.status(404).json({ error: 'post not found' });
   const post = typeof raw === 'string' ? JSON.parse(raw) : raw;
 
-  // Per-user toggles using sets
-  // Handle upvote: bump post to top of timeline using TWO-TIER ranking
+ 
   if (r === 'upvote') {
     const now = Math.floor(Date.now() / 1000);
-    // Mark post as upvoted and store the upvote timestamp
+   
     post.upvotedAt = now;
     await redis.set(`post:${id}`, JSON.stringify(post));
-    // Add to the upvoted sorted set — these posts always appear FIRST
+  
     await redis.zadd('posts:upvoted', { score: now, member: post.id });
-    // Also remove from regular timeline so it doesn't appear twice
+  
     await redis.zrem('posts:bytime', post.id);
     return res.status(200).json({ ok: true, post });
   }
