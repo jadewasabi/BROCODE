@@ -36,7 +36,6 @@ export default async function handler(req, res) {
   const passwordHash = await bcrypt.hash(pwd, 12);
   await redis.set(userKey, JSON.stringify({ username: uname, passwordHash }));
 
-  // Create a token immediately (optional, but convenient)
   const token = jwt.sign({ sub: uname }, process.env.JWT_SECRET, { expiresIn: '2h' });
 
   return res.status(200).json({ ok: true, token });
