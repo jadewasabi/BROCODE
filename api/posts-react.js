@@ -14,7 +14,7 @@ function authUser(req) {
 }
 
 export default async function handler(req, res) {
-  // CORS headers (frontend calls from GitHub Pages)
+  
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
@@ -41,14 +41,14 @@ export default async function handler(req, res) {
   if (!raw) return res.status(404).json({ error: 'post not found' });
   const post = typeof raw === 'string' ? JSON.parse(raw) : raw;
 
-  // Handle upvote: bump post to top of timeline by updating createdAt
+  // upvote
   if (r === 'upvote') {
     post.createdAt = Math.floor(Date.now() / 1000);
     await redis.set(`post:${id}`, JSON.stringify(post));
     return res.status(200).json({ ok: true, post });
   }
 
-  // Per-user toggles using sets
+  
   const setKey = `post:${id}:react:${r}`;
   const already = await redis.sismember(setKey, user);
   if (already) {
