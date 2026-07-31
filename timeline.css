@@ -58,8 +58,8 @@ textarea{min-height:90px;resize:vertical;padding:10px 12px;border-radius:8px;bor
 .post-meta{font-size:12px;opacity:.8}
 
 .post-content{white-space:pre-wrap;margin-top:8px;line-height:1.35}
-.post-img{margin-top:10px;max-height:360px;overflow:hidden;border-radius:10px;border:1px solid rgba(255,255,255,.25)}
-.post-img img{width:100%;display:block;object-fit:cover}
+.post-img{margin-top:10px;border-radius:10px;border:1px solid rgba(255,255,255,.25);display:flex;justify-content:center}
+.post-img img{max-width:100%;max-height:600px;border-radius:8px;display:block;object-fit:contain}
 
 .actions{display:flex;gap:10px;align-items:center;margin-top:10px;flex-wrap:wrap}
 
