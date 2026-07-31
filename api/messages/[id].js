@@ -27,7 +27,7 @@ export default async function handler(req, res) {
   const user = authUser(req);
   if (!user) return res.status(401).json({ error: 'unauthorized' });
 
-  // The conversation ID comes from the dynamic route parameter [id].js -> req.query.id
+  
   const convId = String(req.query.id || req.body?.convId || '').trim();
   if (!convId) return res.status(400).json({ error: 'convId required' });
 
@@ -36,11 +36,11 @@ export default async function handler(req, res) {
     token: process.env.UPSTASH_REDIS_REST_TOKEN,
   });
 
-  // Verify user is part of this conversation
+  // nag eexist  ba yung user
   const isMember = await redis.sismember(`user:convs:${user}`, convId);
   if (!isMember) return res.status(403).json({ error: 'Not a participant in this conversation' });
 
-  // ======== GET: Fetch messages in a conversation (paginated) ========
+
   if (req.method === 'GET') {
     try {
       const limit = Math.min(100, parseInt(req.query.limit) || 50);
@@ -59,25 +59,25 @@ export default async function handler(req, res) {
     }
   }
 
-  // ======== DELETE: Unsend a message ========
+  // unsent 
   if (req.method === 'DELETE') {
     const msgId = String(req.query.msgId || req.body?.msgId || '').trim();
     if (!msgId) return res.status(400).json({ error: 'msgId required' });
 
     try {
-      // Get all messages in the conversation
+      
       const rawMsgs = await redis.lrange(`msgs:${convId}`, 0, -1);
       const parsed = rawMsgs.map((m, idx) => {
         try { return { idx, data: typeof m === 'string' ? JSON.parse(m) : m }; }
         catch { return null; }
       }).filter(Boolean);
 
-      // Find the message with matching ID
+      
       const target = parsed.find(item => item.data.id === msgId);
       if (!target) return res.status(404).json({ error: 'Message not found' });
       if (target.data.from !== user) return res.status(403).json({ error: 'Can only unsend your own messages' });
 
-      // Replace the message with an "unsent" marker (keep position in list)
+      // unsent label
       const unsentMsg = {
         id: msgId,
         from: user,
@@ -85,16 +85,16 @@ export default async function handler(req, res) {
         createdAt: target.data.createdAt,
       };
 
-      // Rebuild the list with the unsent marker
+     
       const updated = rawMsgs.map((m, idx) => {
         if (idx === target.idx) return JSON.stringify(unsentMsg);
         return m;
       });
 
-      // Delete and re-push all messages
+     
       await redis.del(`msgs:${convId}`);
       if (updated.length > 0) {
-        // Push in reverse to maintain order (since we use LPUSH normally)
+      
         for (const msg of updated.reverse()) {
           await redis.lpush(`msgs:${convId}`, msg);
         }
