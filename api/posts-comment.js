@@ -14,7 +14,7 @@ function authUser(req) {
 }
 
 export default async function handler(req, res) {
-  // CORS headers (frontend calls from GitHub Pages)
+  
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
@@ -44,7 +44,7 @@ export default async function handler(req, res) {
 
   post.comments = Array.isArray(post.comments) ? post.comments : [];
   post.comments.push({ username: user, text: t, createdAt: Math.floor(Date.now() / 1000) });
-  // keep last 50 comments
+  // hanggang 50 lang
   post.comments = post.comments.slice(-50);
 
   await redis.set(`post:${id}`, JSON.stringify(post));
